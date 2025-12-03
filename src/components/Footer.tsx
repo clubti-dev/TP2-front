@@ -1,5 +1,6 @@
 import { Building2, Mail, MapPin, Phone } from "lucide-react";
 import clubtiLogo from "@/assets/clubti-logo.png";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -28,19 +29,19 @@ const Footer = () => {
             <h3 className="font-semibold">Links Rápidos</h3>
             <ul className="space-y-2 text-sm opacity-80">
               <li>
-                <a href="/abertura" className="hover:opacity-100 transition-opacity">
+                <Link to="/abertura" className="hover:opacity-100 transition-opacity">
                   Abertura de Processo
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/consulta" className="hover:opacity-100 transition-opacity">
+                <Link to="/consulta" className="hover:opacity-100 transition-opacity">
                   Consultar Processo
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contatos" className="hover:opacity-100 transition-opacity">
+                <Link to="/contatos" className="hover:opacity-100 transition-opacity">
                   Contatos
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -67,9 +68,9 @@ const Footer = () => {
 
         <div className="mt-10 pt-6 border-t border-header-foreground/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm opacity-60">
           <p>© {new Date().getFullYear()} Prefeitura Municipal. Todos os direitos reservados.</p>
-          <a 
-            href="https://www.clubti.com.br" 
-            target="_blank" 
+          <a
+            href="https://www.clubti.com.br"
+            target="_blank"
             rel="noopener noreferrer"
             className="hover:opacity-80 transition-opacity"
           >

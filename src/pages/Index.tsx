@@ -1,6 +1,7 @@
 import { FileText, Search, Info, Clock, Shield, CheckCircle } from "lucide-react";
 import Layout from "@/components/Layout";
 import ActionCard from "@/components/ActionCard";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
@@ -102,12 +103,12 @@ const Index = () => {
             <p className="text-muted-foreground mb-6">
               Nossa equipe está pronta para auxiliar você em qualquer dúvida sobre o sistema ou seus processos.
             </p>
-            <a
-              href="/contatos"
+            <Link
+              to="/contatos"
               className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg"
             >
               Fale Conosco
-            </a>
+            </Link>
           </div>
         </div>
       </section>

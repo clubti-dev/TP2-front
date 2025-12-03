@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -193,7 +194,7 @@ const Abertura = () => {
                   Nova Solicitação
                 </Button>
                 <Button variant="outline" asChild>
-                  <a href="/consulta">Consultar Processo</a>
+                  <Link to="/consulta">Consultar Processo</Link>
                 </Button>
               </div>
             </div>
