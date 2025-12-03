@@ -362,7 +362,7 @@ const ProtocoloDetalhes = () => {
                                         {protocolo.anexos.map((anexo) => (
                                             <a
                                                 key={anexo.id}
-                                                href={`http://localhost:8000/storage/${anexo.caminho}`}
+                                                href={`${import.meta.env.VITE_API_URL.replace(/\/api$/, '')}/storage/${anexo.caminho}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/30 hover:bg-muted transition-colors group"
