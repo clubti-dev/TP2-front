@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, AlertCircle } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -23,7 +23,7 @@ const Admin = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const navigate = useNavigate();
   const { login } = useAuth();
   const { toast } = useToast();
@@ -42,9 +42,9 @@ const Admin = () => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
-    
+
     const cpfNumbers = cpf.replace(/\D/g, "");
-    
+
     if (cpfNumbers.length !== 11) {
       setError("CPF deve conter 11 dígitos");
       setIsLoading(false);
@@ -59,18 +59,18 @@ const Admin = () => {
 
     try {
       await login({ cpf: cpfNumbers, password });
-      
+
       toast({
         title: "Login realizado com sucesso!",
         description: "Você será redirecionado para o painel.",
       });
-      
+
       // Redirect to admin dashboard after successful login
       navigate("/admin/dashboard");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erro ao fazer login";
       setError(errorMessage);
-      
+
       toast({
         variant: "destructive",
         title: "Erro no login",
@@ -101,7 +101,7 @@ const Admin = () => {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="cpf">CPF</Label>
@@ -132,9 +132,14 @@ const Admin = () => {
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
             </form>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              Esqueceu sua senha? Entre em contato com o suporte técnico.
-            </p>
+            <div className="mt-4 text-center">
+              <Link
+                to="/esqueci-senha"
+                className="text-sm text-primary hover:underline"
+              >
+                Esqueceu sua senha?
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

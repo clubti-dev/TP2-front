@@ -7,6 +7,22 @@ export interface Usuario {
   name: string;
   cpf: string;
   email: string;
+  setor_id?: number | null;
+  perfil_id?: number | null;
+  setor?: {
+    id: number;
+    descricao: string;
+    secretaria_id: number;
+    secretaria?: {
+      id: number;
+      descricao: string;
+      sigla: string;
+    };
+  } | null;
+  perfil?: {
+    id: number;
+    descricao: string;
+  } | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -16,6 +32,8 @@ export interface UsuarioInput {
   cpf: string;
   email: string;
   password?: string;
+  setor_id?: number | null;
+  perfil_id?: number | null;
 }
 
 export const usuarioService = {

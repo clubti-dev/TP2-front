@@ -30,19 +30,45 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { usuarioService, Usuario, UsuarioInput } from "@/services/usuarioService";
 import { Loader2, Plus, Pencil, Trash2, Users } from "lucide-react";
+import { useDataTableFilter, DataTableFilterTrigger, DataTableFilterContent, FilterColumn, ActiveFilter } from "@/components/DataTableFilter";
+
+import { secretariaService, Secretaria } from "@/services/secretariaService";
+import { setorService, Setor } from "@/services/setorService";
+import { perfilService, Perfil } from "@/services/perfilService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Usuarios = () => {
   const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [filteredUsuarios, setFilteredUsuarios] = useState<Usuario[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  const [secretarias, setSecretarias] = useState<Secretaria[]>([]);
+  const [setores, setSetores] = useState<Setor[]>([]);
+  const [perfis, setPerfis] = useState<Perfil[]>([]);
+  const [selectedSecretaria, setSelectedSecretaria] = useState<string>("");
+  const [selectedSetor, setSelectedSetor] = useState<string>("");
+  const [selectedPerfil, setSelectedPerfil] = useState<string>("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -54,11 +80,27 @@ const Usuarios = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Helper function to get badge class based on profile
+  const getPerfilBadgeClass = (descricao: string) => {
+    const lower = descricao.toLowerCase();
+    if (lower.includes('master')) {
+      return 'bg-orange-500 text-white hover:bg-orange-600';
+    }
+    if (lower.includes('admin')) {
+      return 'bg-black text-white hover:bg-gray-800';
+    }
+    if (lower.includes('usuário') || lower.includes('usuario')) {
+      return 'bg-yellow-500 text-black hover:bg-yellow-600';
+    }
+    return 'bg-gray-200 text-gray-800';
+  };
+
   const loadUsuarios = async () => {
     try {
       setIsLoading(true);
       const data = await usuarioService.getAll();
       setUsuarios(data);
+      setFilteredUsuarios(data);
     } catch (error) {
       toast({
         title: "Erro",
@@ -67,6 +109,49 @@ const Usuarios = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadSecretarias = async () => {
+    try {
+      const data = await secretariaService.getAll();
+      setSecretarias(data);
+    } catch (error) {
+      console.error("Erro ao carregar secretarias:", error);
+    }
+  };
+
+  const loadSetores = async (secretariaId: number) => {
+    try {
+      const data = await setorService.getAll();
+      const setoresDaSecretaria = data.filter(s => s.secretaria_id === secretariaId);
+      setSetores(setoresDaSecretaria);
+    } catch (error) {
+      console.error("Erro ao carregar setores:", error);
+    }
+  };
+
+  const loadPerfis = async () => {
+    try {
+      const data = await perfilService.getAll();
+      setPerfis(data);
+    } catch (error) {
+      console.error("Erro ao carregar perfis:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadSecretarias();
+    loadPerfis();
+  }, []);
+
+  const handleSecretariaChange = (value: string) => {
+    setSelectedSecretaria(value);
+    setSelectedSetor(""); // Reset setor when secretaria changes
+    if (value) {
+      loadSetores(Number(value));
+    } else {
+      setSetores([]);
     }
   };
 
@@ -93,6 +178,35 @@ const Usuarios = () => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
+  const filterColumns: FilterColumn[] = [
+    { key: "name", label: "Nome", type: "text" },
+    { key: "cpf", label: "CPF", type: "text" },
+    { key: "email", label: "E-mail", type: "text" },
+  ];
+
+  const handleFilterChange = (filters: ActiveFilter[]) => {
+    if (filters.length === 0) {
+      setFilteredUsuarios(usuarios);
+      return;
+    }
+
+    const filtered = usuarios.filter((usuario) => {
+      return filters.every((filter) => {
+        const value = String(usuario[filter.key as keyof Usuario]).toLowerCase();
+        const filterValue = filter.value.toLowerCase();
+        return value.includes(filterValue);
+      });
+    });
+
+    setFilteredUsuarios(filtered);
+    setFilteredUsuarios(filtered);
+  };
+
+  const filter = useDataTableFilter({
+    columns: filterColumns,
+    onFilterChange: handleFilterChange
+  });
+
   const handleOpenCreate = () => {
     setSelectedUsuario(null);
     setFormData({
@@ -102,11 +216,15 @@ const Usuarios = () => {
       password: "",
       confirmPassword: "",
     });
+    setSelectedSecretaria("");
+    setSelectedSetor("");
+    setSelectedPerfil("");
+    setSetores([]);
     setErrors({});
     setIsDialogOpen(true);
   };
 
-  const handleOpenEdit = (usuario: Usuario) => {
+  const handleOpenEdit = async (usuario: Usuario) => {
     setSelectedUsuario(usuario);
     setFormData({
       name: usuario.name,
@@ -115,6 +233,36 @@ const Usuarios = () => {
       password: "",
       confirmPassword: "",
     });
+
+    // If user has a sector, we need to find the corresponding secretaria
+    if (usuario.setor_id) {
+      try {
+        // We need to fetch all sectors to find the one belonging to the user
+        // Ideally the API would return the sector object with the user, but for now we fetch all
+        const allSetores = await setorService.getAll();
+        const userSetor = allSetores.find(s => s.id === usuario.setor_id);
+
+        if (userSetor) {
+          setSelectedSecretaria(userSetor.secretaria_id.toString());
+          await loadSetores(userSetor.secretaria_id);
+          setSelectedSetor(userSetor.id.toString());
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados do setor do usuário", error);
+      }
+    } else {
+      setSelectedSecretaria("");
+      setSelectedSetor("");
+      setSetores([]);
+    }
+
+    // Set perfil if user has one
+    if (usuario.perfil_id) {
+      setSelectedPerfil(usuario.perfil_id.toString());
+    } else {
+      setSelectedPerfil("");
+    }
+
     setErrors({});
     setIsDialogOpen(true);
   };
@@ -183,6 +331,8 @@ const Usuarios = () => {
         name: formData.name.trim(),
         cpf: extractCPFNumbers(formData.cpf),
         email: formData.email.trim().toLowerCase(),
+        setor_id: selectedSetor ? Number(selectedSetor) : null,
+        perfil_id: selectedPerfil ? Number(selectedPerfil) : null,
       };
 
       // Incluir senha apenas se preenchida
@@ -279,9 +429,16 @@ const Usuarios = () => {
               <p className="text-muted-foreground">Gerenciar usuários do sistema</p>
             </div>
           </div>
-          <Button onClick={handleOpenCreate} size="icon" title="Novo Usuário">
-            <Plus className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2">
+            <DataTableFilterTrigger filter={filter} />
+            <Button onClick={handleOpenCreate} size="icon" title="Novo Usuário">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="mb-4 flex justify-end">
+          <DataTableFilterContent filter={filter} className="w-full max-w-3xl ml-auto" />
         </div>
 
         {/* Table */}
@@ -302,16 +459,45 @@ const Usuarios = () => {
                   <TableHead>Nome</TableHead>
                   <TableHead>CPF</TableHead>
                   <TableHead>E-mail</TableHead>
+                  <TableHead>SECRETARIA</TableHead>
+                  <TableHead>Setor</TableHead>
+                  <TableHead>Perfil</TableHead>
                   <TableHead className="w-32 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {usuarios.map((usuario) => (
+                {filteredUsuarios.map((usuario) => (
                   <TableRow key={usuario.id}>
                     <TableCell className="font-medium">{usuario.id}</TableCell>
                     <TableCell>{usuario.name}</TableCell>
                     <TableCell>{formatCPF(usuario.cpf)}</TableCell>
                     <TableCell>{usuario.email}</TableCell>
+                    <TableCell>
+                      {usuario.setor?.secretaria?.sigla ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <span className="cursor-help underline decoration-dotted">
+                              {usuario.setor.secretaria.sigla}
+                            </span>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-2">
+                            <p className="text-sm">{usuario.setor.secretaria.descricao}</p>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        '-'
+                      )}
+                    </TableCell>
+                    <TableCell>{usuario.setor?.descricao || '-'}</TableCell>
+                    <TableCell>
+                      {usuario.perfil ? (
+                        <Badge className={getPerfilBadgeClass(usuario.perfil.descricao)}>
+                          {usuario.perfil.descricao}
+                        </Badge>
+                      ) : (
+                        '-'
+                      )}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -342,7 +528,7 @@ const Usuarios = () => {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
           <DialogHeader className="bg-primary text-primary-foreground p-6">
             <DialogTitle className="text-2xl font-bold">
               {selectedUsuario ? "Editar Usuário" : "Novo Usuário"}
@@ -415,6 +601,60 @@ const Usuarios = () => {
                 placeholder="Confirme a senha"
               />
               {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Secretaria</Label>
+                <Select value={selectedSecretaria} onValueChange={handleSecretariaChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {secretarias.map((secretaria) => (
+                      <SelectItem key={secretaria.id} value={secretaria.id.toString()}>
+                        {secretaria.descricao}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Setor</Label>
+                <Select
+                  value={selectedSetor}
+                  onValueChange={setSelectedSetor}
+                  disabled={!selectedSecretaria}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {setores.map((setor) => (
+                      <SelectItem key={setor.id} value={setor.id.toString()}>
+                        {setor.descricao}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Perfil</Label>
+              <Select value={selectedPerfil} onValueChange={setSelectedPerfil}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {perfis.map((perfil) => (
+                    <SelectItem key={perfil.id} value={perfil.id.toString()}>
+                      {perfil.descricao}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter className="px-6 pb-6">

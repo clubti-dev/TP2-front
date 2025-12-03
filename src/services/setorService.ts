@@ -1,37 +1,25 @@
 import { authService } from "./authService";
-import { DocumentoNecessario } from "./documentoNecessarioService";
+import { Secretaria } from "./secretariaService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api";
 
-export interface Solicitacao {
+export interface Setor {
     id: number;
-    descricao: string;
     secretaria_id: number;
-    secretaria?: {
-        id: number;
-        descricao: string;
-        sigla: string;
-    };
-    setor_id?: number;
-    setor?: {
-        id: number;
-        descricao: string;
-    };
-    documentos?: DocumentoNecessario[];
+    descricao: string;
+    secretaria?: Secretaria;
     created_at: string;
     updated_at: string;
 }
 
-export interface CreateSolicitacaoData {
-    descricao: string;
+export interface CreateSetorData {
     secretaria_id: number;
-    setor_id?: number;
-    documentos_ids?: number[];
+    descricao: string;
 }
 
-export const solicitacaoService = {
-    getAll: async (): Promise<Solicitacao[]> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes`, {
+export const setorService = {
+    getAll: async (): Promise<Setor[]> => {
+        const response = await fetch(`${API_BASE_URL}/setores`, {
             headers: {
                 "Accept": "application/json",
                 ...authService.getAuthHeader(),
@@ -39,14 +27,14 @@ export const solicitacaoService = {
         });
 
         if (!response.ok) {
-            throw new Error("Erro ao carregar solicitações");
+            throw new Error("Erro ao carregar setores");
         }
 
         return response.json();
     },
 
-    getById: async (id: number): Promise<Solicitacao> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes/${id}`, {
+    getById: async (id: number): Promise<Setor> => {
+        const response = await fetch(`${API_BASE_URL}/setores/${id}`, {
             headers: {
                 "Accept": "application/json",
                 ...authService.getAuthHeader(),
@@ -54,14 +42,14 @@ export const solicitacaoService = {
         });
 
         if (!response.ok) {
-            throw new Error("Solicitação não encontrada");
+            throw new Error("Setor não encontrado");
         }
 
         return response.json();
     },
 
-    create: async (data: CreateSolicitacaoData): Promise<Solicitacao> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes`, {
+    create: async (data: CreateSetorData): Promise<Setor> => {
+        const response = await fetch(`${API_BASE_URL}/setores`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -73,14 +61,14 @@ export const solicitacaoService = {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || "Erro ao criar solicitação");
+            throw new Error(errorData.message || "Erro ao criar setor");
         }
 
         return response.json();
     },
 
-    update: async (id: number, data: CreateSolicitacaoData): Promise<Solicitacao> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes/${id}`, {
+    update: async (id: number, data: Partial<CreateSetorData>): Promise<Setor> => {
+        const response = await fetch(`${API_BASE_URL}/setores/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -92,14 +80,14 @@ export const solicitacaoService = {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || "Erro ao atualizar solicitação");
+            throw new Error(errorData.message || "Erro ao atualizar setor");
         }
 
         return response.json();
     },
 
     delete: async (id: number): Promise<void> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/setores/${id}`, {
             method: "DELETE",
             headers: {
                 "Accept": "application/json",
@@ -108,7 +96,7 @@ export const solicitacaoService = {
         });
 
         if (!response.ok) {
-            throw new Error("Erro ao excluir solicitação");
+            throw new Error("Erro ao excluir setor");
         }
     },
 };

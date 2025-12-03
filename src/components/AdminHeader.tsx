@@ -11,6 +11,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { User, LogOut, ChevronDown, UserCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MobileSidebar from "./MobileSidebar";
+import { useState, useEffect } from "react";
+import { municipioService, Municipio } from "@/services/municipioService";
 
 const AdminHeader = () => {
     const { user, logout } = useAuth();
@@ -22,11 +24,27 @@ const AdminHeader = () => {
     };
 
     const isAdmin = user?.role === "admin";
+    const [municipio, setMunicipio] = useState<Municipio | null>(null);
+
+    useEffect(() => {
+        const fetchMunicipio = async () => {
+            try {
+                const data = await municipioService.get();
+                setMunicipio(data);
+            } catch (error) {
+                console.error("Erro ao carregar dados do município:", error);
+            }
+        };
+        fetchMunicipio();
+    }, []);
 
     return (
         <header className="bg-primary border-b border-primary/10 px-8 h-[72px] flex justify-between items-center text-primary-foreground shadow-md">
             <div className="flex items-center gap-4">
                 <MobileSidebar />
+                <h2 className="text-lg font-semibold text-white hidden md:block">
+                    {municipio?.nome_municipio || "Gestão Municipal"}
+                </h2>
             </div>
 
             <div className="flex-1" /> {/* Spacer to push content to right */}

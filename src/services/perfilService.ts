@@ -1,37 +1,17 @@
 import { authService } from "./authService";
-import { DocumentoNecessario } from "./documentoNecessarioService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api";
 
-export interface Solicitacao {
+export interface Perfil {
     id: number;
     descricao: string;
-    secretaria_id: number;
-    secretaria?: {
-        id: number;
-        descricao: string;
-        sigla: string;
-    };
-    setor_id?: number;
-    setor?: {
-        id: number;
-        descricao: string;
-    };
-    documentos?: DocumentoNecessario[];
-    created_at: string;
-    updated_at: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
-export interface CreateSolicitacaoData {
-    descricao: string;
-    secretaria_id: number;
-    setor_id?: number;
-    documentos_ids?: number[];
-}
-
-export const solicitacaoService = {
-    getAll: async (): Promise<Solicitacao[]> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes`, {
+export const perfilService = {
+    async getAll(): Promise<Perfil[]> {
+        const response = await fetch(`${API_BASE_URL}/perfils`, {
             headers: {
                 "Accept": "application/json",
                 ...authService.getAuthHeader(),
@@ -39,14 +19,14 @@ export const solicitacaoService = {
         });
 
         if (!response.ok) {
-            throw new Error("Erro ao carregar solicitações");
+            throw new Error("Erro ao carregar perfis");
         }
 
         return response.json();
     },
 
-    getById: async (id: number): Promise<Solicitacao> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes/${id}`, {
+    async getById(id: number): Promise<Perfil> {
+        const response = await fetch(`${API_BASE_URL}/perfils/${id}`, {
             headers: {
                 "Accept": "application/json",
                 ...authService.getAuthHeader(),
@@ -54,14 +34,14 @@ export const solicitacaoService = {
         });
 
         if (!response.ok) {
-            throw new Error("Solicitação não encontrada");
+            throw new Error("Perfil não encontrado");
         }
 
         return response.json();
     },
 
-    create: async (data: CreateSolicitacaoData): Promise<Solicitacao> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes`, {
+    async create(data: { descricao: string }): Promise<Perfil> {
+        const response = await fetch(`${API_BASE_URL}/perfils`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -73,14 +53,14 @@ export const solicitacaoService = {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || "Erro ao criar solicitação");
+            throw new Error(errorData.message || "Erro ao criar perfil");
         }
 
         return response.json();
     },
 
-    update: async (id: number, data: CreateSolicitacaoData): Promise<Solicitacao> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes/${id}`, {
+    async update(id: number, data: { descricao: string }): Promise<Perfil> {
+        const response = await fetch(`${API_BASE_URL}/perfils/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -92,14 +72,14 @@ export const solicitacaoService = {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || "Erro ao atualizar solicitação");
+            throw new Error(errorData.message || "Erro ao atualizar perfil");
         }
 
         return response.json();
     },
 
-    delete: async (id: number): Promise<void> => {
-        const response = await fetch(`${API_BASE_URL}/solicitacoes/${id}`, {
+    async delete(id: number): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/perfils/${id}`, {
             method: "DELETE",
             headers: {
                 "Accept": "application/json",
@@ -108,7 +88,7 @@ export const solicitacaoService = {
         });
 
         if (!response.ok) {
-            throw new Error("Erro ao excluir solicitação");
+            throw new Error("Erro ao excluir perfil");
         }
     },
 };

@@ -31,7 +31,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { secretariaService, Secretaria, CreateSecretariaData } from "@/services/secretariaService";
-import { Plus, Pencil, Trash2, Loader2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import {
+  DataTableFilterTrigger,
+  DataTableFilterContent,
+  useDataTableFilter,
+  FilterColumn,
+  ActiveFilter
+} from "@/components/DataTableFilter";
 
 const formSchema = z.object({
   sigla: z.string().min(1, "Sigla é obrigatória").max(10, "Sigla deve ter no máximo 10 caracteres"),
@@ -44,8 +51,8 @@ const Secretarias = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [secretarias, setSecretarias] = useState<Secretaria[]>([]);
+  const [filteredSecretarias, setFilteredSecretarias] = useState<Secretaria[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -68,6 +75,7 @@ const Secretarias = () => {
       const data = await secretariaService.getAll();
       console.log("Secretarias loaded:", data);
       setSecretarias(data);
+      setFilteredSecretarias(data);
     } catch (error) {
       toast({
         title: "Erro",
@@ -141,10 +149,32 @@ const Secretarias = () => {
     setIsModalOpen(true);
   };
 
-  const filteredSecretarias = secretarias.filter((s) =>
-    s.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.sigla.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filterColumns: FilterColumn[] = [
+    { key: "sigla", label: "Sigla", type: "text" },
+    { key: "descricao", label: "Descrição", type: "text" },
+  ];
+
+  const handleFilterChange = (filters: ActiveFilter[]) => {
+    if (filters.length === 0) {
+      setFilteredSecretarias(secretarias);
+      return;
+    }
+
+    const filtered = secretarias.filter((secretaria) => {
+      return filters.every((filter) => {
+        const value = String(secretaria[filter.key as keyof Secretaria] || "").toLowerCase();
+        const filterValue = filter.value.toLowerCase();
+        return value.includes(filterValue);
+      });
+    });
+
+    setFilteredSecretarias(filtered);
+  };
+
+  const filter = useDataTableFilter({
+    columns: filterColumns,
+    onFilterChange: handleFilterChange
+  });
 
   if (authLoading) return null;
 
@@ -156,19 +186,16 @@ const Secretarias = () => {
             <h1 className="text-3xl font-bold text-gray-900">Secretarias</h1>
             <p className="text-gray-500">Gerencie as secretarias municipais</p>
           </div>
-          <Button onClick={handleNew} size="icon" title="Nova Secretaria">
-            <Plus className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2">
+            <DataTableFilterTrigger filter={filter} />
+            <Button onClick={handleNew} size="icon">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-white p-4 rounded-lg border shadow-sm">
-          <Search className="h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Buscar secretaria..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="border-none shadow-none focus-visible:ring-0"
-          />
+        <div className="mb-4 flex justify-end">
+          <DataTableFilterContent filter={filter} className="w-full max-w-3xl ml-auto" />
         </div>
 
         <div className="bg-white rounded-lg border shadow-sm">

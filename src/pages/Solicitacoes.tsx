@@ -42,8 +42,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { solicitacaoService, Solicitacao, CreateSolicitacaoData } from "@/services/solicitacaoService";
 import { secretariaService, Secretaria } from "@/services/secretariaService";
+import { setorService, Setor } from "@/services/setorService";
 import { documentoNecessarioService, DocumentoNecessario } from "@/services/documentoNecessarioService";
 import { Plus, Pencil, Trash2, Loader2, FileQuestion } from "lucide-react";
+import {
+    DataTableFilterTrigger,
+    DataTableFilterContent,
+    useDataTableFilter,
+    FilterColumn,
+    ActiveFilter
+} from "@/components/DataTableFilter";
 
 const Solicitacoes = () => {
     const navigate = useNavigate();
@@ -51,7 +59,9 @@ const Solicitacoes = () => {
     const { isAuthenticated, isLoading: authLoading } = useAuth();
 
     const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
+    const [filteredSolicitacoes, setFilteredSolicitacoes] = useState<Solicitacao[]>([]);
     const [secretarias, setSecretarias] = useState<Secretaria[]>([]);
+    const [setores, setSetores] = useState<Setor[]>([]);
     const [documentosNecessarios, setDocumentosNecessarios] = useState<DocumentoNecessario[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -59,6 +69,7 @@ const Solicitacoes = () => {
     const [selectedSolicitacao, setSelectedSolicitacao] = useState<Solicitacao | null>(null);
     const [descricao, setDescricao] = useState("");
     const [secretariaId, setSecretariaId] = useState<string>("");
+    const [setorId, setSetorId] = useState<string>("");
     const [selectedDocumentos, setSelectedDocumentos] = useState<number[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [errors, setErrors] = useState<{ descricao?: string; secretaria?: string }>({});
@@ -78,13 +89,16 @@ const Solicitacoes = () => {
     const loadData = async () => {
         try {
             setIsLoading(true);
-            const [solicitacoesData, secretariasData, documentosData] = await Promise.all([
+            const [solicitacoesData, secretariasData, setoresData, documentosData] = await Promise.all([
                 solicitacaoService.getAll(),
                 secretariaService.getAll(),
+                setorService.getAll(),
                 documentoNecessarioService.getAll(),
             ]);
             setSolicitacoes(solicitacoesData);
+            setFilteredSolicitacoes(solicitacoesData);
             setSecretarias(secretariasData);
+            setSetores(setoresData);
             setDocumentosNecessarios(documentosData);
         } catch (err) {
             toast({
@@ -101,6 +115,7 @@ const Solicitacoes = () => {
         setSelectedSolicitacao(null);
         setDescricao("");
         setSecretariaId("");
+        setSetorId("");
         setSelectedDocumentos([]);
         setErrors({});
         setIsDialogOpen(true);
@@ -110,6 +125,7 @@ const Solicitacoes = () => {
         setSelectedSolicitacao(solicitacao);
         setDescricao(solicitacao.descricao);
         setSecretariaId(solicitacao.secretaria_id.toString());
+        setSetorId(solicitacao.setor_id ? solicitacao.setor_id.toString() : "");
         setSelectedDocumentos(solicitacao.documentos?.map(d => d.id) || []);
         setErrors({});
         setIsDialogOpen(true);
@@ -153,6 +169,7 @@ const Solicitacoes = () => {
             const data: CreateSolicitacaoData = {
                 descricao: descricao.trim(),
                 secretaria_id: parseInt(secretariaId),
+                setor_id: setorId ? parseInt(setorId) : undefined,
                 documentos_ids: selectedDocumentos,
             };
 
@@ -211,6 +228,48 @@ const Solicitacoes = () => {
         return secretaria?.descricao || "-";
     };
 
+    const getSetorDescricao = (setorId: number) => {
+        const setor = setores.find((s) => s.id === setorId);
+        return setor?.descricao || "-";
+    };
+
+    const filterColumns: FilterColumn[] = [
+        { key: "descricao", label: "Descrição", type: "text" },
+        { key: "secretaria", label: "Secretaria", type: "text" },
+        { key: "setor", label: "Setor", type: "text" },
+    ];
+
+    const handleFilterChange = (filters: ActiveFilter[]) => {
+        if (filters.length === 0) {
+            setFilteredSolicitacoes(solicitacoes);
+            return;
+        }
+
+        const filtered = solicitacoes.filter((solicitacao) => {
+            return filters.every((filter) => {
+                let value = "";
+                const filterValue = filter.value.toLowerCase();
+
+                if (filter.key === "secretaria") {
+                    value = (solicitacao.secretaria?.descricao || getSecretariaDescricao(solicitacao.secretaria_id)).toLowerCase();
+                } else if (filter.key === "setor") {
+                    value = (solicitacao.setor?.descricao || (solicitacao.setor_id ? getSetorDescricao(solicitacao.setor_id) : "")).toLowerCase();
+                } else {
+                    value = String(solicitacao[filter.key as keyof Solicitacao] || "").toLowerCase();
+                }
+
+                return value.includes(filterValue);
+            });
+        });
+
+        setFilteredSolicitacoes(filtered);
+    };
+
+    const filter = useDataTableFilter({
+        columns: filterColumns,
+        onFilterChange: handleFilterChange
+    });
+
     if (authLoading) {
         return (
             <AdminLayout>
@@ -239,9 +298,16 @@ const Solicitacoes = () => {
                             <p className="text-muted-foreground">Gerenciar tipos de solicitação</p>
                         </div>
                     </div>
-                    <Button onClick={handleOpenCreate} size="icon" title="Nova Solicitação">
-                        <Plus className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                        <DataTableFilterTrigger filter={filter} />
+                        <Button onClick={handleOpenCreate} size="icon" title="Nova Solicitação">
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="mb-4 flex justify-end">
+                    <DataTableFilterContent filter={filter} className="w-full max-w-3xl ml-auto" />
                 </div>
 
                 {/* Table */}
@@ -250,7 +316,7 @@ const Solicitacoes = () => {
                         <div className="flex items-center justify-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                    ) : solicitacoes.length === 0 ? (
+                    ) : filteredSolicitacoes.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">
                             Nenhuma solicitação cadastrada
                         </div>
@@ -261,17 +327,21 @@ const Solicitacoes = () => {
                                     <TableHead className="w-20">ID</TableHead>
                                     <TableHead>Descrição</TableHead>
                                     <TableHead>Secretaria</TableHead>
+                                    <TableHead>Setor</TableHead>
                                     <TableHead>Documentos</TableHead>
                                     <TableHead className="w-32 text-right">Ações</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {solicitacoes.map((solicitacao) => (
+                                {filteredSolicitacoes.map((solicitacao) => (
                                     <TableRow key={solicitacao.id}>
                                         <TableCell className="font-medium">{solicitacao.id}</TableCell>
                                         <TableCell>{solicitacao.descricao}</TableCell>
                                         <TableCell>
                                             {solicitacao.secretaria?.descricao || getSecretariaDescricao(solicitacao.secretaria_id)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {solicitacao.setor?.descricao || (solicitacao.setor_id ? getSetorDescricao(solicitacao.setor_id) : "-")}
                                         </TableCell>
                                         <TableCell>
                                             {solicitacao.documentos && solicitacao.documentos.length > 0
@@ -323,6 +393,7 @@ const Solicitacoes = () => {
                             <Label htmlFor="secretaria">Secretaria</Label>
                             <Select value={secretariaId} onValueChange={(value) => {
                                 setSecretariaId(value);
+                                setSetorId(""); // Clear sector when secretariat changes
                                 setErrors((prev) => ({ ...prev, secretaria: undefined }));
                             }}>
                                 <SelectTrigger>
@@ -337,6 +408,28 @@ const Solicitacoes = () => {
                                 </SelectContent>
                             </Select>
                             {errors.secretaria && <p className="text-sm text-destructive">{errors.secretaria}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="setor">Setor (Opcional)</Label>
+                            <Select
+                                value={setorId}
+                                onValueChange={setSetorId}
+                                disabled={!secretariaId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={!secretariaId ? "Selecione uma secretaria primeiro" : "Selecione um setor (opcional)"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {setores
+                                        .filter(s => s.secretaria_id.toString() === secretariaId)
+                                        .map((setor) => (
+                                            <SelectItem key={setor.id} value={setor.id.toString()}>
+                                                {setor.descricao}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="descricao">Descrição</Label>

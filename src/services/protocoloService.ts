@@ -27,6 +27,10 @@ export interface Protocolo {
     descricao: string;
     cor: string;
   };
+  setor?: {
+    id: number;
+    descricao: string;
+  };
   anexos?: {
     id: number;
     caminho: string;
@@ -43,6 +47,7 @@ export interface ProtocoloInput {
   solicitante_id: number;
   solicitacao_id: number;
   status_id: number;
+  setor_id?: number;
 }
 
 // Helper to map backend status to frontend colors/labels if needed, 
@@ -136,6 +141,25 @@ export const protocoloService = {
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Erro ao excluir protocolo" }));
       throw new Error(error.message || "Erro ao excluir protocolo");
+    }
+  },
+
+  async uploadAnexo(id: number, file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append("anexo", file);
+
+    const response = await fetch(`${API_BASE_URL}/protocolos/${id}/anexos`, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        ...authService.getAuthHeader(),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Erro ao enviar anexo" }));
+      throw new Error(error.message || "Erro ao enviar anexo");
     }
   },
 };

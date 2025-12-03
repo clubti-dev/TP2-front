@@ -34,6 +34,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { documentoNecessarioService, DocumentoNecessario, CreateDocumentoNecessarioData } from "@/services/documentoNecessarioService";
 import { Plus, Pencil, Trash2, Loader2, FileText } from "lucide-react";
+import {
+    DataTableFilterTrigger,
+    DataTableFilterContent,
+    useDataTableFilter,
+    FilterColumn,
+    ActiveFilter
+} from "@/components/DataTableFilter";
 
 const DocumentosNecessarios = () => {
     const navigate = useNavigate();
@@ -41,6 +48,7 @@ const DocumentosNecessarios = () => {
     const { isAuthenticated, isLoading: authLoading } = useAuth();
 
     const [documentos, setDocumentos] = useState<DocumentoNecessario[]>([]);
+    const [filteredDocumentos, setFilteredDocumentos] = useState<DocumentoNecessario[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -66,6 +74,7 @@ const DocumentosNecessarios = () => {
             setIsLoading(true);
             const data = await documentoNecessarioService.getAll();
             setDocumentos(data);
+            setFilteredDocumentos(data);
         } catch (err) {
             toast({
                 title: "Erro",
@@ -154,6 +163,7 @@ const DocumentosNecessarios = () => {
             toast({
                 title: "Sucesso",
                 description: "Documento excluído com sucesso",
+                variant: "destructive",
             });
             setIsDeleteDialogOpen(false);
             loadData();
@@ -167,6 +177,32 @@ const DocumentosNecessarios = () => {
             setIsSaving(false);
         }
     };
+
+    const filterColumns: FilterColumn[] = [
+        { key: "descricao", label: "Descrição", type: "text" },
+    ];
+
+    const handleFilterChange = (filters: ActiveFilter[]) => {
+        if (filters.length === 0) {
+            setFilteredDocumentos(documentos);
+            return;
+        }
+
+        const filtered = documentos.filter((documento) => {
+            return filters.every((filter) => {
+                const value = String(documento[filter.key as keyof DocumentoNecessario] || "").toLowerCase();
+                const filterValue = filter.value.toLowerCase();
+                return value.includes(filterValue);
+            });
+        });
+
+        setFilteredDocumentos(filtered);
+    };
+
+    const filter = useDataTableFilter({
+        columns: filterColumns,
+        onFilterChange: handleFilterChange
+    });
 
     if (authLoading) {
         return (
@@ -196,9 +232,16 @@ const DocumentosNecessarios = () => {
                             <p className="text-muted-foreground">Gerenciar lista de documentos padrão</p>
                         </div>
                     </div>
-                    <Button onClick={handleOpenCreate} size="icon" title="Novo Documento">
-                        <Plus className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                        <DataTableFilterTrigger filter={filter} />
+                        <Button onClick={handleOpenCreate} size="icon" title="Novo Documento">
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="mb-4 flex justify-end">
+                    <DataTableFilterContent filter={filter} className="w-full max-w-3xl ml-auto" />
                 </div>
 
                 {/* Table */}
@@ -207,7 +250,7 @@ const DocumentosNecessarios = () => {
                         <div className="flex items-center justify-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                    ) : documentos.length === 0 ? (
+                    ) : filteredDocumentos.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">
                             Nenhum documento cadastrado
                         </div>
@@ -221,7 +264,7 @@ const DocumentosNecessarios = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {documentos.map((documento) => (
+                                {filteredDocumentos.map((documento) => (
                                     <TableRow key={documento.id}>
                                         <TableCell className="font-medium">{documento.id}</TableCell>
                                         <TableCell>{documento.descricao}</TableCell>

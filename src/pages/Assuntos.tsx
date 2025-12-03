@@ -42,6 +42,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { assuntoService, Assunto } from "@/services/assuntoService";
 import { secretariaService, Secretaria } from "@/services/secretariaService";
 import { Plus, Pencil, Trash2, Loader2, FileText } from "lucide-react";
+import {
+  DataTableFilterTrigger,
+  DataTableFilterContent,
+  useDataTableFilter,
+  FilterColumn,
+  ActiveFilter
+} from "@/components/DataTableFilter";
 
 const Assuntos = () => {
   const navigate = useNavigate();
@@ -49,6 +56,7 @@ const Assuntos = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [assuntos, setAssuntos] = useState<Assunto[]>([]);
+  const [filteredAssuntos, setFilteredAssuntos] = useState<Assunto[]>([]);
   const [secretarias, setSecretarias] = useState<Secretaria[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -79,6 +87,7 @@ const Assuntos = () => {
         secretariaService.getAll(),
       ]);
       setAssuntos(assuntosData);
+      setFilteredAssuntos(assuntosData);
       setSecretarias(secretariasData);
     } catch (err) {
       toast({
@@ -194,6 +203,40 @@ const Assuntos = () => {
     return secretaria?.descricao || "-";
   };
 
+  const filterColumns: FilterColumn[] = [
+    { key: "descricao", label: "Descrição", type: "text" },
+    { key: "secretaria", label: "Secretaria", type: "text" },
+  ];
+
+  const handleFilterChange = (filters: ActiveFilter[]) => {
+    if (filters.length === 0) {
+      setFilteredAssuntos(assuntos);
+      return;
+    }
+
+    const filtered = assuntos.filter((assunto) => {
+      return filters.every((filter) => {
+        let value = "";
+        const filterValue = filter.value.toLowerCase();
+
+        if (filter.key === "secretaria") {
+          value = (assunto.secretaria?.descricao || getSecretariaDescricao(assunto.secretaria_id)).toLowerCase();
+        } else {
+          value = String(assunto[filter.key as keyof Assunto] || "").toLowerCase();
+        }
+
+        return value.includes(filterValue);
+      });
+    });
+
+    setFilteredAssuntos(filtered);
+  };
+
+  const filter = useDataTableFilter({
+    columns: filterColumns,
+    onFilterChange: handleFilterChange
+  });
+
   if (authLoading) {
     return (
       <Layout>
@@ -212,8 +255,8 @@ const Assuntos = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
               <FileText className="h-6 w-6 text-primary" />
             </div>
@@ -222,14 +265,17 @@ const Assuntos = () => {
               <p className="text-muted-foreground">Gerenciar assuntos do sistema</p>
             </div>
           </div>
+          <div className="flex gap-2">
+            <DataTableFilterTrigger filter={filter} />
+            <Button onClick={handleOpenCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Assunto
+            </Button>
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="mb-6">
-          <Button onClick={handleOpenCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Assunto
-          </Button>
+        <div className="mb-4 flex justify-end">
+          <DataTableFilterContent filter={filter} className="w-full max-w-3xl ml-auto" />
         </div>
 
         {/* Table */}
@@ -238,7 +284,7 @@ const Assuntos = () => {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : assuntos.length === 0 ? (
+          ) : filteredAssuntos.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               Nenhum assunto cadastrado
             </div>
@@ -253,7 +299,7 @@ const Assuntos = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {assuntos.map((assunto) => (
+                {filteredAssuntos.map((assunto) => (
                   <TableRow key={assunto.id}>
                     <TableCell className="font-medium">{assunto.id}</TableCell>
                     <TableCell>{assunto.descricao}</TableCell>

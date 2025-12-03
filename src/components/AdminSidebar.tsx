@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { municipioService, Municipio } from "@/services/municipioService";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FileText, Users, Settings, LogOut, ChevronDown, ChevronRight, FolderPlus, ArrowRightLeft, UserCircle, FileQuestion } from "lucide-react";
+import { LayoutDashboard, FileText, Users, Settings, ChevronDown, ChevronRight, FolderPlus, ArrowRightLeft, UserCircle, FileQuestion } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ const sidebarItems = [
       { icon: FileText, label: "Documentos Necessários", href: "/admin/documentos-necessarios" },
       { icon: ArrowRightLeft, label: "Movimentação", href: "/admin/movimentacoes" },
       { icon: FileText, label: "Secretarias", href: "/admin/secretarias" },
+      { icon: FolderPlus, label: "Setores", href: "/admin/setores" },
     ],
   },
   { icon: Settings, label: "Configurações", href: "/admin/configuracoes" },
@@ -37,6 +39,19 @@ const AdminSidebar = ({ mobile, onClose }: AdminSidebarProps) => {
   const location = useLocation();
   const { logout } = useAuth();
   const [openSubmenus, setOpenSubmenus] = useState<string[]>(["Cadastro"]);
+  const [municipio, setMunicipio] = useState<Municipio | null>(null);
+
+  useEffect(() => {
+    const fetchMunicipio = async () => {
+      try {
+        const data = await municipioService.get();
+        setMunicipio(data);
+      } catch (error) {
+        console.error("Erro ao carregar dados do município:", error);
+      }
+    };
+    fetchMunicipio();
+  }, []);
 
   const toggleSubmenu = (label: string) => {
     setOpenSubmenus((prev) =>
@@ -57,9 +72,16 @@ const AdminSidebar = ({ mobile, onClose }: AdminSidebarProps) => {
       "flex flex-col w-64 bg-card border-r h-full",
       mobile ? "border-none" : "hidden md:flex h-screen sticky top-0"
     )}>
-      <div className="h-[72px] flex flex-col justify-center px-6 border-b">
-        <h1 className="text-xl font-bold text-primary">ClubTI</h1>
-        <p className="text-xs text-muted-foreground">Gestão Municipal</p>
+      <div className="h-[72px] flex flex-col justify-center items-center px-6 border-b">
+        {municipio?.logo_municipio ? (
+          <img
+            src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${municipio.logo_municipio}`}
+            alt="Logo"
+            className="h-12 w-auto object-contain"
+          />
+        ) : (
+          <h1 className="text-xl font-bold text-primary">ClubTI</h1>
+        )}
       </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
@@ -139,16 +161,7 @@ const AdminSidebar = ({ mobile, onClose }: AdminSidebarProps) => {
         })}
       </nav>
 
-      <div className="p-4 border-t">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive"
-          onClick={logout}
-        >
-          <LogOut className="h-5 w-5" />
-          <span className="font-medium">Sair</span>
-        </Button>
-      </div>
+
     </aside>
   );
 };

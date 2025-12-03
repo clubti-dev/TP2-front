@@ -1,6 +1,5 @@
 import { NavLink } from "@/components/NavLink";
 import { Building2, Lock, Menu, X, ChevronDown, Building, FileText, Users, FileStack } from "lucide-react";
-import { useState } from "react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,12 +9,27 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { municipioService, Municipio } from "@/services/municipioService";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cadastroOpen, setCadastroOpen] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const [municipio, setMunicipio] = useState<Municipio | null>(null);
+
+  useEffect(() => {
+    const fetchMunicipio = async () => {
+      try {
+        const data = await municipioService.get();
+        setMunicipio(data);
+      } catch (error) {
+        console.error("Erro ao carregar dados do município:", error);
+      }
+    };
+    fetchMunicipio();
+  }, []);
 
   const navItems = [
     { to: "/", label: "Início" },
@@ -37,12 +51,20 @@ const Header = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <NavLink to="/" className="flex items-center gap-3 text-header-foreground">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-header-foreground/10 backdrop-blur">
-              <Building2 className="h-6 w-6" />
-            </div>
+            {municipio?.logo_municipio ? (
+              <img
+                src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${municipio.logo_municipio}`}
+                alt="Logo"
+                className="h-10 w-auto object-contain rounded-lg bg-white/10 backdrop-blur p-1"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-header-foreground/10 backdrop-blur">
+                <Building2 className="h-6 w-6" />
+              </div>
+            )}
             <div className="hidden sm:block">
               <p className="text-sm font-semibold leading-tight">TP Web</p>
-              <p className="text-xs opacity-80">Prefeitura Municipal</p>
+              <p className="text-xs opacity-80">{municipio?.nome_municipio || "Prefeitura Municipal"}</p>
             </div>
           </NavLink>
 
