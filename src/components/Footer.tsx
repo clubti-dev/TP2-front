@@ -13,7 +13,7 @@ const Footer = () => {
                 <Building2 className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-semibold">Protocolo Web</p>
+                <p className="font-semibold">TP Web</p>
                 <p className="text-xs opacity-80">Prefeitura Municipal</p>
               </div>
             </div>

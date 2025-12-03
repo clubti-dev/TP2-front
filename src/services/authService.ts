@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api";
 
 const loginSchema = z.object({
   cpf: z.string().min(11, "CPF inválido").max(11, "CPF inválido"),

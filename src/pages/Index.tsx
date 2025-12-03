@@ -10,13 +10,13 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center text-header-foreground animate-fade-in">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
-              Protocolo Web
+              TP Web
             </h1>
             <p className="text-lg md:text-xl opacity-90 mb-2">
-              Sistema de Abertura e Consulta de Processos
+              Sistema de Tramitação de Processos
             </p>
             <p className="text-sm md:text-base opacity-75 max-w-2xl mx-auto">
-              Visando à agilidade no atendimento aos contribuintes, o Protocolo Web permite efetuar consulta e abertura de processos administrativos junto à Prefeitura de forma online e segura.
+              Visando à agilidade no atendimento aos contribuintes, o TP Web permite efetuar consulta e abertura de processos administrativos junto à Prefeitura de forma online e segura.
             </p>
           </div>
         </div>
@@ -58,7 +58,7 @@ const Index = () => {
       <section className="py-12 md:py-16 bg-muted/50">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 animate-fade-in">
-            Por que usar o Protocolo Web?
+            Por que usar o TP Web?
           </h2>
           <div className="grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
             <div className="text-center animate-slide-up" style={{ animationDelay: "100ms" }}>
