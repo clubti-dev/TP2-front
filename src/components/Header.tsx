@@ -41,7 +41,7 @@ const Header = () => {
               <Building2 className="h-6 w-6" />
             </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-semibold leading-tight">Protocolo Web</p>
+              <p className="text-sm font-semibold leading-tight">TP Web</p>
               <p className="text-xs opacity-80">Prefeitura Municipal</p>
             </div>
           </NavLink>
