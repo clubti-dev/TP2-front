@@ -18,6 +18,7 @@ import Configuracoes from "./pages/Configuracoes";
 import Movimentacoes from "./pages/Movimentacoes";
 import NotFound from "./pages/NotFound";
 import Solicitantes from "./pages/Solicitantes";
+import Perfil from "./pages/Perfil";
 
 import Solicitacoes from "./pages/Solicitacoes";
 import DocumentosNecessarios from "./pages/DocumentosNecessarios";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/protocolos" element={<Protocolos />} />
             <Route path="/admin/usuarios" element={<Usuarios />} />
+            <Route path="/admin/perfil" element={<Perfil />} />
             <Route path="/admin/solicitantes" element={<Solicitantes />} />
             <Route path="/admin/configuracoes" element={<Configuracoes />} />
             <Route path="/admin/movimentacoes" element={<Movimentacoes />} />

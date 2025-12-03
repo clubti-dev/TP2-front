@@ -19,6 +19,7 @@ export interface AuthResponse {
     cpf: string;
     email?: string;
     role?: string;
+    avatar?: string;
   };
 }
 
@@ -51,7 +52,7 @@ export const authService = {
       const errorData: AuthError = await response.json().catch(() => ({
         message: "Erro ao conectar com o servidor",
       }));
-      
+
       if (response.status === 401) {
         throw new Error("CPF ou senha incorretos");
       }
@@ -61,22 +62,22 @@ export const authService = {
       if (response.status === 429) {
         throw new Error("Muitas tentativas. Aguarde alguns minutos.");
       }
-      
+
       throw new Error(errorData.message || "Erro ao fazer login");
     }
 
     const data: AuthResponse = await response.json();
-    
+
     // Store token and user data
     localStorage.setItem(TOKEN_KEY, data.access_token);
     localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-    
+
     return data;
   },
 
   async logout(): Promise<void> {
     const token = this.getToken();
-    
+
     if (token) {
       try {
         await fetch(`${API_BASE_URL}/auth/logout`, {
@@ -90,7 +91,7 @@ export const authService = {
         // Ignore logout API errors
       }
     }
-    
+
     this.clearAuth();
   },
 
@@ -101,7 +102,7 @@ export const authService = {
   getUser(): AuthResponse["user"] | null {
     const userData = localStorage.getItem(USER_KEY);
     if (!userData) return null;
-    
+
     try {
       return JSON.parse(userData);
     } catch {
@@ -121,5 +122,44 @@ export const authService = {
   getAuthHeader(): Record<string, string> {
     const token = this.getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
+  },
+
+  async updateProfile(data: FormData): Promise<AuthResponse['user']> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/json",
+      },
+      body: data,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Erro ao atualizar perfil");
+    }
+
+    const result = await response.json();
+    localStorage.setItem(USER_KEY, JSON.stringify(result.user));
+    return result.user;
+  },
+
+  async updatePassword(data: any): Promise<void> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE_URL}/profile/password`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Erro ao alterar senha");
+    }
   },
 };

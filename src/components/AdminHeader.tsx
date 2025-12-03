@@ -39,8 +39,16 @@ const AdminHeader = () => {
                                 <span className="text-sm font-medium">{user?.name}</span>
                                 <span className="text-xs opacity-80">{user?.role}</span>
                             </div>
-                            <div className="h-8 w-8 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                                <User className="h-5 w-5" />
+                            <div className="h-8 w-8 rounded-full bg-primary-foreground/20 flex items-center justify-center overflow-hidden">
+                                {user?.avatar ? (
+                                    <img
+                                        src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${user.avatar}`}
+                                        alt={user.name}
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    <User className="h-5 w-5" />
+                                )}
                             </div>
                             <ChevronDown className="h-4 w-4 opacity-80" />
                         </Button>
@@ -49,12 +57,10 @@ const AdminHeader = () => {
                         <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                         <DropdownMenuSeparator />
 
-                        {!isAdmin && (
-                            <DropdownMenuItem onClick={() => navigate("/admin/perfil")}>
-                                <UserCircle className="mr-2 h-4 w-4" />
-                                <span>Meu Perfil</span>
-                            </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem onClick={() => navigate("/admin/perfil")}>
+                            <UserCircle className="mr-2 h-4 w-4" />
+                            <span>Meu Perfil</span>
+                        </DropdownMenuItem>
 
                         <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
                             <LogOut className="mr-2 h-4 w-4" />
