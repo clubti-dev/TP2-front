@@ -25,14 +25,16 @@ const Admin = () => {
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Only redirect if authenticated AND user profile is loaded
+    // This prevents infinite loops if ProtectedRoute redirects back here due to stale data
+    if (isAuthenticated && user?.perfil) {
       navigate("/admin/dashboard");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCpf(formatCPF(e.target.value));

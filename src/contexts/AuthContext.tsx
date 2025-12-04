@@ -30,8 +30,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = useCallback(async () => {
-    await authService.logout();
     setUser(null);
+    await authService.logout();
   }, []);
 
   return (
