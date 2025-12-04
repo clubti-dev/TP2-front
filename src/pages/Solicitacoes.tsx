@@ -87,6 +87,16 @@ const Solicitacoes = () => {
         }
     }, [isAuthenticated, refreshUser]);
 
+    // Reactive update for Admin secretariat
+    useEffect(() => {
+        if (isDialogOpen && !selectedSolicitacao && user?.perfil?.descricao === 'Admin' && user?.setor?.secretaria) {
+            const adminSecretariaId = user.setor.secretaria.id.toString();
+            if (secretariaId !== adminSecretariaId) {
+                setSecretariaId(adminSecretariaId);
+            }
+        }
+    }, [user, isDialogOpen, selectedSolicitacao, secretariaId]);
+
     const loadData = async () => {
         try {
             setIsLoading(true);

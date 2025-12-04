@@ -106,6 +106,17 @@ const Setores = () => {
         }
     }, [isAuthenticated, refreshUser]);
 
+    // Reactive update for Admin secretariat
+    useEffect(() => {
+        if (isModalOpen && !editingId && user?.perfil?.descricao === 'Admin' && user?.setor?.secretaria) {
+            const adminSecretariaId = user.setor.secretaria.id.toString();
+            const currentVal = form.getValues("secretaria_id");
+            if (currentVal !== adminSecretariaId) {
+                form.setValue("secretaria_id", adminSecretariaId);
+            }
+        }
+    }, [user, isModalOpen, editingId, form]);
+
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             const data: CreateSetorData = {

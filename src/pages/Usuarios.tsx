@@ -162,6 +162,17 @@ const Usuarios = () => {
     }
   }, [isAuthenticated, refreshUser]);
 
+  // Reactive update for Admin secretariat
+  useEffect(() => {
+    if (isDialogOpen && !selectedUsuario && currentUser?.perfil?.descricao === 'Admin' && currentUser?.setor?.secretaria) {
+      const secretariaId = currentUser.setor.secretaria.id.toString();
+      if (selectedSecretaria !== secretariaId) {
+        setSelectedSecretaria(secretariaId);
+        loadSetores(Number(secretariaId));
+      }
+    }
+  }, [currentUser, isDialogOpen, selectedUsuario, selectedSecretaria]);
+
   const formatCPF = (value: string) => {
     return value
       .replace(/\D/g, "")
