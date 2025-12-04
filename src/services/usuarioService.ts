@@ -8,6 +8,7 @@ export interface Usuario {
   cpf: string;
   email: string;
   setor_id?: number | null;
+  secretaria_id?: number | null;
   perfil_id?: number | null;
   setor?: {
     id: number;
@@ -18,6 +19,11 @@ export interface Usuario {
       descricao: string;
       sigla: string;
     };
+  } | null;
+  secretaria?: {
+    id: number;
+    descricao: string;
+    sigla: string;
   } | null;
   perfil?: {
     id: number;
@@ -33,6 +39,7 @@ export interface UsuarioInput {
   email: string;
   password?: string;
   setor_id?: number | null;
+  secretaria_id?: number | null;
   perfil_id?: number | null;
 }
 

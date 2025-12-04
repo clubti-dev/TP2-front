@@ -308,6 +308,11 @@ const Usuarios = () => {
       } catch (error) {
         console.error("Erro ao carregar dados do setor do usuário", error);
       }
+    } else if (usuario.secretaria_id) {
+      // User has secretariat but no sector (e.g. Secretário)
+      setSelectedSecretaria(usuario.secretaria_id.toString());
+      await loadSetores(usuario.secretaria_id);
+      setSelectedSetor("");
     } else {
       // If editing a user without sector, check if current user is Admin to enforce restriction
       if (currentUser?.perfil?.descricao === 'Admin' && currentUser?.setor?.secretaria) {
@@ -397,6 +402,7 @@ const Usuarios = () => {
         cpf: extractCPFNumbers(formData.cpf),
         email: formData.email.trim().toLowerCase(),
         setor_id: selectedSetor ? Number(selectedSetor) : null,
+        secretaria_id: (!selectedSetor && selectedSecretaria) ? Number(selectedSecretaria) : null,
         perfil_id: selectedPerfil ? Number(selectedPerfil) : null,
       };
 
@@ -715,6 +721,10 @@ const Usuarios = () => {
                 {perfis.find(p => p.id.toString() === selectedPerfil)?.descricao === 'Admin' ? (
                   <div className="p-2 border rounded bg-gray-100 text-gray-500 text-sm">
                     Setor selecionado automaticamente
+                  </div>
+                ) : perfis.find(p => p.id.toString() === selectedPerfil)?.descricao.toLowerCase().includes('secretário') || perfis.find(p => p.id.toString() === selectedPerfil)?.descricao.toLowerCase().includes('secretario') ? (
+                  <div className="p-2 border rounded bg-gray-100 text-gray-500 text-sm">
+                    Secretário não precisa de setor
                   </div>
                 ) : (
                   <Select
