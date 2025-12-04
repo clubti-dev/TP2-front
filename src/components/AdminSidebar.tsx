@@ -12,24 +12,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-const sidebarItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
-  { icon: FileText, label: "Protocolos", href: "/admin/protocolos" },
-  {
-    icon: FolderPlus,
-    label: "Cadastro",
-    submenu: [
-      { icon: Users, label: "Usuários", href: "/admin/usuarios" },
-      { icon: UserCircle, label: "Solicitantes", href: "/admin/solicitantes" },
-      { icon: FileQuestion, label: "Solicitações", href: "/admin/solicitacoes" },
-      { icon: FileText, label: "Documentos Necessários", href: "/admin/documentos-necessarios" },
-      { icon: ArrowRightLeft, label: "Movimentação", href: "/admin/movimentacoes" },
-      { icon: FileText, label: "Secretarias", href: "/admin/secretarias" },
-      { icon: FolderPlus, label: "Setores", href: "/admin/setores" },
-    ],
-  },
-  { icon: Settings, label: "Configurações", href: "/admin/configuracoes" },
-];
+
 
 interface AdminSidebarProps {
   mobile?: boolean;
@@ -38,7 +21,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ mobile, onClose }: AdminSidebarProps) => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [openSubmenus, setOpenSubmenus] = useState<string[]>(["Cadastro"]);
   const [municipio, setMunicipio] = useState<Municipio | null>(null);
 
@@ -53,6 +36,65 @@ const AdminSidebar = ({ mobile, onClose }: AdminSidebarProps) => {
     };
     fetchMunicipio();
   }, []);
+
+  const sidebarItems = [
+    {
+      icon: LayoutDashboard,
+      label: "Dashboard",
+      href: "/admin/dashboard",
+      roles: ['Master', 'Admin', 'Usuário']
+    },
+    {
+      icon: FileText,
+      label: "Protocolos",
+      href: "/admin/protocolos",
+      roles: ['Master', 'Admin', 'Usuário']
+    },
+    {
+      icon: FolderPlus,
+      label: "Cadastro",
+      roles: ['Master', 'Admin'],
+      submenu: [
+        { icon: Users, label: "Usuários", href: "/admin/usuarios", roles: ['Master', 'Admin'] },
+        { icon: UserCircle, label: "Solicitantes", href: "/admin/solicitantes", roles: ['Master', 'Admin'] },
+        { icon: FileQuestion, label: "Solicitações", href: "/admin/solicitacoes", roles: ['Master', 'Admin'] },
+        { icon: FileText, label: "Documentos Necessários", href: "/admin/documentos-necessarios", roles: ['Master', 'Admin'] },
+        { icon: ArrowRightLeft, label: "Movimentação", href: "/admin/movimentacoes", roles: ['Master', 'Admin', 'Usuário'] },
+        { icon: FileText, label: "Secretarias", href: "/admin/secretarias", roles: ['Master', 'Admin'] },
+        { icon: FolderPlus, label: "Setores", href: "/admin/setores", roles: ['Master', 'Admin'] },
+      ],
+    },
+    {
+      icon: Settings,
+      label: "Configurações",
+      href: "/admin/configuracoes",
+      roles: ['Master']
+    },
+  ];
+
+  const filteredItems = sidebarItems.filter(item => {
+    if (!user?.perfil) return false;
+
+    // Check main item role
+    if (item.roles && !item.roles.includes(user.perfil.descricao)) {
+      return false;
+    }
+
+    // If it has submenu, filter submenu items
+    if (item.submenu) {
+      const filteredSubmenu = item.submenu.filter(subItem =>
+        !subItem.roles || subItem.roles.includes(user.perfil.descricao)
+      );
+
+      // If no submenu items remain, don't show the parent
+      if (filteredSubmenu.length === 0) return false;
+
+      // Update the item with filtered submenu (create a copy to avoid mutating original)
+      item.submenu = filteredSubmenu;
+    }
+
+    return true;
+  });
 
   const toggleSubmenu = (label: string) => {
     setOpenSubmenus((prev) =>
@@ -86,7 +128,7 @@ const AdminSidebar = ({ mobile, onClose }: AdminSidebarProps) => {
       </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {sidebarItems.map((item) => {
+        {filteredItems.map((item) => {
           if (item.submenu) {
             const isOpen = openSubmenus.includes(item.label);
             const isActive = item.submenu.some((sub) => location.pathname === sub.href);
