@@ -2,7 +2,7 @@ import { authService } from "./authService";
 import { Secretaria } from "./secretariaService";
 import { Assunto } from "./assuntoService";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br";
 
 export interface Protocolo {
   id: number;
