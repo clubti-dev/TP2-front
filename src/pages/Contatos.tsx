@@ -5,11 +5,25 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, MapPin, Clock, Send, MessageCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { municipioService, Municipio } from "@/services/municipioService";
 
 const Contatos = () => {
   const { toast } = useToast();
   const [sending, setSending] = useState(false);
+  const [municipio, setMunicipio] = useState<Municipio | null>(null);
+
+  useEffect(() => {
+    const fetchMunicipio = async () => {
+      try {
+        const data = await municipioService.get();
+        setMunicipio(data);
+      } catch (error) {
+        console.error("Erro ao carregar dados do município:", error);
+      }
+    };
+    fetchMunicipio();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,20 +44,20 @@ const Contatos = () => {
     {
       icon: Phone,
       title: "Telefone",
-      content: "(00) 0000-0000",
+      content: municipio?.telefone || "(00) 0000-0000",
       description: "Seg a Sex, 8h às 17h",
     },
     {
       icon: Mail,
       title: "E-mail",
-      content: "protocolo@prefeitura.gov.br",
+      content: municipio?.email || "protocolo@prefeitura.gov.br",
       description: "Resposta em até 48h",
     },
     {
       icon: MapPin,
       title: "Endereço",
-      content: "Praça Central, 100 - Centro",
-      description: "CEP: 00000-000",
+      content: municipio ? `${municipio.logradouro}, ${municipio.numero}${municipio.complemento ? ` - ${municipio.complemento}` : ''} - ${municipio.bairro}` : "Praça Central, 100 - Centro",
+      description: municipio ? `${municipio.nome_municipio} - ${municipio.uf}, CEP: ${municipio.cep}` : "CEP: 00000-000",
     },
     {
       icon: Clock,
@@ -52,6 +66,12 @@ const Contatos = () => {
       description: "08:00 às 17:00",
     },
   ];
+
+  const fullAddress = municipio
+    ? `${municipio.logradouro}, ${municipio.numero} - ${municipio.bairro}, ${municipio.nome_municipio} - ${municipio.uf}`
+    : "Praça Central, 100 - Centro";
+
+  const encodedAddress = encodeURIComponent(fullAddress);
 
   return (
     <Layout>
@@ -152,15 +172,22 @@ const Contatos = () => {
         </div>
       </section>
 
-      {/* Map Placeholder */}
+      {/* Map */}
       <section className="pb-10 md:pb-14">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="bg-muted rounded-2xl h-64 flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <MapPin className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Mapa da localização</p>
-              </div>
+            <div className="bg-muted rounded-2xl h-96 overflow-hidden card-shadow">
+              <iframe
+                width="100%"
+                height="100%"
+                id="gmap_canvas"
+                src={`https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                frameBorder="0"
+                scrolling="no"
+                marginHeight={0}
+                marginWidth={0}
+                title="Mapa de Localização"
+              ></iframe>
             </div>
           </div>
         </div>

@@ -15,7 +15,6 @@ import { getStorageUrl } from "@/utils/urlUtils";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cadastroOpen, setCadastroOpen] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [municipio, setMunicipio] = useState<Municipio | null>(null);
@@ -37,13 +36,6 @@ const Header = () => {
     { to: "/abertura", label: "Abertura" },
     { to: "/consulta", label: "Consultar" },
     { to: "/contatos", label: "Contatos" },
-  ];
-
-  const cadastroItems = [
-    { to: "/cadastro/protocolos", label: "Protocolos", icon: FileStack },
-    { to: "/cadastro/secretarias", label: "Secretarias", icon: Building },
-    { to: "/cadastro/assuntos", label: "Assuntos", icon: FileText },
-    { to: "/cadastro/usuarios", label: "Usuários", icon: Users },
   ];
 
   return (
@@ -82,32 +74,7 @@ const Header = () => {
               </NavLink>
             ))}
 
-            {/* Cadastro Dropdown - Only visible when authenticated */}
-            {isAuthenticated && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="px-4 py-2 text-sm font-medium text-header-foreground/80 hover:bg-header-foreground/10 hover:text-header-foreground"
-                  >
-                    Cadastro
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {cadastroItems.map((item) => (
-                    <DropdownMenuItem
-                      key={item.to}
-                      onClick={() => navigate(item.to)}
-                      className="cursor-pointer"
-                    >
-                      <item.icon className="h-4 w-4 mr-2" />
-                      {item.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+
 
             <Button
               variant="outline"
@@ -147,33 +114,7 @@ const Header = () => {
                 </NavLink>
               ))}
 
-              {/* Cadastro Menu - Mobile */}
-              {isAuthenticated && (
-                <>
-                  <button
-                    onClick={() => setCadastroOpen(!cadastroOpen)}
-                    className="flex items-center justify-between px-4 py-3 text-sm font-medium text-header-foreground/80 rounded-lg transition-all hover:bg-header-foreground/10"
-                  >
-                    Cadastro
-                    <ChevronDown className={`h-4 w-4 transition-transform ${cadastroOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {cadastroOpen && (
-                    <div className="ml-4 flex flex-col gap-1">
-                      {cadastroItems.map((item) => (
-                        <NavLink
-                          key={item.to}
-                          to={item.to}
-                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-header-foreground/70 rounded-lg transition-all hover:bg-header-foreground/10"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {item.label}
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
+
 
               <Button
                 variant="outline"

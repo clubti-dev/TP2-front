@@ -3,6 +3,7 @@ import clubtiLogo from "@/assets/clubti-logo.png";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { municipioService, Municipio } from "@/services/municipioService";
+import { getStorageUrl } from "@/utils/urlUtils";
 
 const Footer = () => {
   const [municipio, setMunicipio] = useState<Municipio | null>(null);
@@ -28,7 +29,7 @@ const Footer = () => {
             <div className="flex items-center gap-3">
               {municipio?.logo_municipio ? (
                 <img
-                  src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${municipio.logo_municipio}`}
+                  src={getStorageUrl(municipio.logo_municipio) || ''}
                   alt="Logo"
                   className="h-12 w-auto object-contain rounded-lg bg-white/10 backdrop-blur p-1"
                 />
