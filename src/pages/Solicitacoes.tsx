@@ -413,40 +413,41 @@ const Solicitacoes = () => {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-                        <div className="space-y-2">
-                            <Label htmlFor="secretaria">Secretaria</Label>
-                            <Select
-                                value={secretariaId}
-                                onValueChange={(value) => {
-                                    setSecretariaId(value);
-                                    setSetorId(""); // Clear sector when secretariat changes
-                                    setErrors((prev) => ({ ...prev, secretaria: undefined }));
-                                }}
-                                disabled={user?.perfil?.descricao === 'Admin' && !!user?.setor?.secretaria}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione uma secretaria" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {secretarias.map((secretaria) => (
-                                        <SelectItem key={secretaria.id} value={secretaria.id.toString()}>
-                                            {secretaria.descricao}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.secretaria && <p className="text-sm text-destructive">{errors.secretaria}</p>}
-                        </div>
+                        {(!user?.setor?.secretaria || user?.perfil?.descricao !== 'Admin') && (
+                            <div className="space-y-2">
+                                <Label htmlFor="secretaria">Secretaria</Label>
+                                <Select
+                                    value={secretariaId}
+                                    onValueChange={(value) => {
+                                        setSecretariaId(value);
+                                        setSetorId(""); // Clear sector when secretariat changes
+                                        setErrors((prev) => ({ ...prev, secretaria: undefined }));
+                                    }}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione uma secretaria" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {secretarias.map((secretaria) => (
+                                            <SelectItem key={secretaria.id} value={secretaria.id.toString()}>
+                                                {secretaria.descricao}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.secretaria && <p className="text-sm text-destructive">{errors.secretaria}</p>}
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <Label htmlFor="setor">Setor (Opcional)</Label>
                             <Select
                                 value={setorId}
                                 onValueChange={setSetorId}
-                                disabled={!secretariaId}
+                                disabled={(!secretariaId && !user?.setor?.secretaria) || setores.length === 0}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder={!secretariaId ? "Selecione uma secretaria primeiro" : "Selecione um setor (opcional)"} />
+                                    <SelectValue placeholder={!secretariaId && !user?.setor?.secretaria ? "Selecione uma secretaria primeiro" : "Selecione um setor (opcional)"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {setores
@@ -506,10 +507,10 @@ const Solicitacoes = () => {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
+            </Dialog >
 
             {/* Delete Confirmation Dialog */}
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            < AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
@@ -530,8 +531,8 @@ const Solicitacoes = () => {
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
-            </AlertDialog>
-        </AdminLayout>
+            </AlertDialog >
+        </AdminLayout >
     );
 };
 

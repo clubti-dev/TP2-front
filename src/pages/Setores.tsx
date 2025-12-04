@@ -301,34 +301,35 @@ const Setores = () => {
                         <div className="p-6">
                             <Form {...form}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="secretaria_id"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Secretaria</FormLabel>
-                                                <Select
-                                                    onValueChange={field.onChange}
-                                                    defaultValue={field.value}
-                                                    disabled={user?.perfil?.descricao === 'Admin' && !!user?.setor?.secretaria}
-                                                >
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Selecione uma secretaria" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {secretarias.map((secretaria) => (
-                                                            <SelectItem key={secretaria.id} value={secretaria.id.toString()}>
-                                                                {secretaria.sigla} - {secretaria.descricao}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    {(!user?.setor?.secretaria || user?.perfil?.descricao !== 'Admin') && (
+                                        <FormField
+                                            control={form.control}
+                                            name="secretaria_id"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Secretaria</FormLabel>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        defaultValue={field.value}
+                                                    >
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Selecione uma secretaria" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {secretarias.map((secretaria) => (
+                                                                <SelectItem key={secretaria.id} value={secretaria.id.toString()}>
+                                                                    {secretaria.sigla} - {secretaria.descricao}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    )}
                                     <FormField
                                         control={form.control}
                                         name="descricao"

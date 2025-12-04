@@ -80,6 +80,14 @@ const Usuarios = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Auto-select first sector if Profile is Admin
+  useEffect(() => {
+    const selectedPerfilObj = perfis.find(p => p.id.toString() === selectedPerfil);
+    if (selectedPerfilObj?.descricao === 'Admin' && setores.length > 0 && !selectedSetor) {
+      setSelectedSetor(setores[0].id.toString());
+    }
+  }, [selectedPerfil, setores, selectedSetor, perfis]);
+
   // Helper function to get badge class based on profile
   const getPerfilBadgeClass = (descricao: string) => {
     const lower = descricao.toLowerCase();
@@ -597,6 +605,24 @@ const Usuarios = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="p-6 space-y-4">
+            {currentUser?.perfil?.descricao !== 'Admin' && (
+              <div className="space-y-2">
+                <Label>Perfil</Label>
+                <Select value={selectedPerfil} onValueChange={setSelectedPerfil}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {perfis.map((perfil) => (
+                      <SelectItem key={perfil.id} value={perfil.id.toString()}>
+                        {perfil.descricao}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="name">Nome</Label>
               <Input
@@ -661,64 +687,57 @@ const Usuarios = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Secretaria</Label>
-                <Select
-                  value={selectedSecretaria}
-                  onValueChange={handleSecretariaChange}
-                  disabled={currentUser?.perfil?.descricao === 'Admin' && !!currentUser?.setor?.secretaria}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {secretarias.map((secretaria) => (
-                      <SelectItem key={secretaria.id} value={secretaria.id.toString()}>
-                        {secretaria.descricao}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {(!currentUser?.setor?.secretaria || currentUser?.perfil?.descricao !== 'Admin') && (
+                <div className="space-y-2">
+                  <Label>Secretaria</Label>
+                  <Select
+                    value={selectedSecretaria}
+                    onValueChange={handleSecretariaChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {secretarias.map((secretaria) => (
+                        <SelectItem key={secretaria.id} value={secretaria.id.toString()}>
+                          {secretaria.descricao}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+
 
               <div className="space-y-2">
                 <Label>Setor</Label>
-                <Select
-                  value={selectedSetor}
-                  onValueChange={setSelectedSetor}
-                  disabled={!selectedSecretaria}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {setores.map((setor) => (
-                      <SelectItem key={setor.id} value={setor.id.toString()}>
-                        {setor.descricao}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {perfis.find(p => p.id.toString() === selectedPerfil)?.descricao === 'Admin' ? (
+                  <div className="p-2 border rounded bg-gray-100 text-gray-500 text-sm">
+                    Setor selecionado automaticamente
+                  </div>
+                ) : (
+                  <Select
+                    value={selectedSetor}
+                    onValueChange={setSelectedSetor}
+                    disabled={!selectedSecretaria && !currentUser?.setor?.secretaria}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {setores.map((setor) => (
+                        <SelectItem key={setor.id} value={setor.id.toString()}>
+                          {setor.descricao}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
 
-            {currentUser?.perfil?.descricao !== 'Admin' && (
-              <div className="space-y-2">
-                <Label>Perfil</Label>
-                <Select value={selectedPerfil} onValueChange={setSelectedPerfil}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {perfis.map((perfil) => (
-                      <SelectItem key={perfil.id} value={perfil.id.toString()}>
-                        {perfil.descricao}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+
           </div>
           <DialogFooter className="px-6 pb-6">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>
