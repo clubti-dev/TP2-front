@@ -26,6 +26,10 @@ export interface AuthResponse {
     setor?: {
       id: number;
       descricao: string;
+      secretaria?: {
+        id: number;
+        descricao: string;
+      };
     };
   };
 }

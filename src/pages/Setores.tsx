@@ -56,7 +56,7 @@ const formSchema = z.object({
 const Setores = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { isAuthenticated, isLoading: authLoading } = useAuth();
+    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
     const [setores, setSetores] = useState<Setor[]>([]);
     const [filteredSetores, setFilteredSetores] = useState<Setor[]>([]);
@@ -134,8 +134,14 @@ const Setores = () => {
 
     const handleEdit = (setor: Setor) => {
         setEditingId(setor.id);
+
+        let secretariaId = setor.secretaria_id.toString();
+        if (user?.perfil?.descricao === 'Admin' && user?.setor?.secretaria) {
+            secretariaId = user.setor.secretaria.id.toString();
+        }
+
         form.reset({
-            secretaria_id: setor.secretaria_id.toString(),
+            secretaria_id: secretariaId,
             descricao: setor.descricao,
         });
         setIsModalOpen(true);
@@ -159,8 +165,14 @@ const Setores = () => {
 
     const handleNew = () => {
         setEditingId(null);
+
+        let secretariaId = "";
+        if (user?.perfil?.descricao === 'Admin' && user?.setor?.secretaria) {
+            secretariaId = user.setor.secretaria.id.toString();
+        }
+
         form.reset({
-            secretaria_id: "",
+            secretaria_id: secretariaId,
             descricao: "",
         });
         setIsModalOpen(true);
@@ -283,7 +295,11 @@ const Setores = () => {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Secretaria</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <Select
+                                                    onValueChange={field.onChange}
+                                                    defaultValue={field.value}
+                                                    disabled={user?.perfil?.descricao === 'Admin'}
+                                                >
                                                     <FormControl>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder="Selecione uma secretaria" />

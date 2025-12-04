@@ -6,13 +6,19 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
-    const { user, isAuthenticated, isLoading } = useAuth();
+    const { user, isAuthenticated, isLoading, logout } = useAuth();
 
     if (isLoading) {
         return <div className="flex items-center justify-center h-screen">Carregando...</div>;
     }
 
     if (!isAuthenticated) {
+        return <Navigate to="/admin" replace />;
+    }
+
+    // Check for stale data (authenticated but missing profile)
+    if (isAuthenticated && !user?.perfil) {
+        logout();
         return <Navigate to="/admin" replace />;
     }
 

@@ -56,7 +56,7 @@ import {
 const Solicitacoes = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { isAuthenticated, isLoading: authLoading } = useAuth();
+    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
     const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
     const [filteredSolicitacoes, setFilteredSolicitacoes] = useState<Solicitacao[]>([]);
@@ -114,7 +114,14 @@ const Solicitacoes = () => {
     const handleOpenCreate = () => {
         setSelectedSolicitacao(null);
         setDescricao("");
-        setSecretariaId("");
+
+        // Check if user is Admin and restrict Secretaria
+        if (user?.perfil?.descricao === 'Admin' && user?.setor?.secretaria) {
+            setSecretariaId(user.setor.secretaria.id.toString());
+        } else {
+            setSecretariaId("");
+        }
+
         setSetorId("");
         setSelectedDocumentos([]);
         setErrors({});
@@ -124,7 +131,13 @@ const Solicitacoes = () => {
     const handleOpenEdit = (solicitacao: Solicitacao) => {
         setSelectedSolicitacao(solicitacao);
         setDescricao(solicitacao.descricao);
-        setSecretariaId(solicitacao.secretaria_id.toString());
+
+        if (user?.perfil?.descricao === 'Admin' && user?.setor?.secretaria) {
+            setSecretariaId(user.setor.secretaria.id.toString());
+        } else {
+            setSecretariaId(solicitacao.secretaria_id.toString());
+        }
+
         setSetorId(solicitacao.setor_id ? solicitacao.setor_id.toString() : "");
         setSelectedDocumentos(solicitacao.documentos?.map(d => d.id) || []);
         setErrors({});
@@ -391,11 +404,15 @@ const Solicitacoes = () => {
                     <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
                         <div className="space-y-2">
                             <Label htmlFor="secretaria">Secretaria</Label>
-                            <Select value={secretariaId} onValueChange={(value) => {
-                                setSecretariaId(value);
-                                setSetorId(""); // Clear sector when secretariat changes
-                                setErrors((prev) => ({ ...prev, secretaria: undefined }));
-                            }}>
+                            <Select
+                                value={secretariaId}
+                                onValueChange={(value) => {
+                                    setSecretariaId(value);
+                                    setSetorId(""); // Clear sector when secretariat changes
+                                    setErrors((prev) => ({ ...prev, secretaria: undefined }));
+                                }}
+                                disabled={user?.perfil?.descricao === 'Admin'}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione uma secretaria" />
                                 </SelectTrigger>

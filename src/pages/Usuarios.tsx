@@ -216,10 +216,19 @@ const Usuarios = () => {
       password: "",
       confirmPassword: "",
     });
-    setSelectedSecretaria("");
+
+    // Check if user is Admin and restrict Secretaria
+    if (currentUser?.perfil?.descricao === 'Admin' && currentUser?.setor?.secretaria) {
+      const secretariaId = currentUser.setor.secretaria.id.toString();
+      setSelectedSecretaria(secretariaId);
+      loadSetores(Number(secretariaId));
+    } else {
+      setSelectedSecretaria("");
+      setSetores([]);
+    }
+
     setSelectedSetor("");
     setSelectedPerfil("");
-    setSetores([]);
     setErrors({});
     setIsDialogOpen(true);
   };
@@ -237,8 +246,6 @@ const Usuarios = () => {
     // If user has a sector, we need to find the corresponding secretaria
     if (usuario.setor_id) {
       try {
-        // We need to fetch all sectors to find the one belonging to the user
-        // Ideally the API would return the sector object with the user, but for now we fetch all
         const allSetores = await setorService.getAll();
         const userSetor = allSetores.find(s => s.id === usuario.setor_id);
 
@@ -251,9 +258,16 @@ const Usuarios = () => {
         console.error("Erro ao carregar dados do setor do usuário", error);
       }
     } else {
-      setSelectedSecretaria("");
+      // If editing a user without sector, check if current user is Admin to enforce restriction
+      if (currentUser?.perfil?.descricao === 'Admin' && currentUser?.setor?.secretaria) {
+        const secretariaId = currentUser.setor.secretaria.id.toString();
+        setSelectedSecretaria(secretariaId);
+        loadSetores(Number(secretariaId));
+      } else {
+        setSelectedSecretaria("");
+        setSetores([]);
+      }
       setSelectedSetor("");
-      setSetores([]);
     }
 
     // Set perfil if user has one
@@ -606,7 +620,11 @@ const Usuarios = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Secretaria</Label>
-                <Select value={selectedSecretaria} onValueChange={handleSecretariaChange}>
+                <Select
+                  value={selectedSecretaria}
+                  onValueChange={handleSecretariaChange}
+                  disabled={currentUser?.perfil?.descricao === 'Admin'}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
