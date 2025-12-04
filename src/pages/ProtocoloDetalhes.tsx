@@ -362,7 +362,7 @@ const ProtocoloDetalhes = () => {
                                         {protocolo.anexos.map((anexo) => (
                                             <a
                                                 key={anexo.id}
-                                                href={`${(import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br").replace(/\/api$/, '')}/storage/${anexo.caminho}`}
+                                                href={`${(import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api").replace(/\/api$/, '')}/storage/${anexo.caminho}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/30 hover:bg-muted transition-colors group"
