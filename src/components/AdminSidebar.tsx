@@ -60,7 +60,7 @@ const AdminSidebar = ({ mobile, onClose }: AdminSidebarProps) => {
         { icon: FileQuestion, label: "Solicitações", href: "/admin/solicitacoes", roles: ['Master', 'Admin'] },
         { icon: FileText, label: "Documentos Necessários", href: "/admin/documentos-necessarios", roles: ['Master', 'Admin'] },
         { icon: ArrowRightLeft, label: "Movimentação", href: "/admin/movimentacoes", roles: ['Master', 'Admin', 'Usuário'] },
-        { icon: FileText, label: "Secretarias", href: "/admin/secretarias", roles: ['Master', 'Admin'] },
+        { icon: FileText, label: "Secretarias", href: "/admin/secretarias", roles: ['Master'] },
         { icon: FolderPlus, label: "Setores", href: "/admin/setores", roles: ['Master', 'Admin'] },
       ],
     },

@@ -84,7 +84,7 @@ const App = () => {
               <Route element={<ProtectedRoute allowedRoles={['Master', 'Admin']} />}>
                 <Route path="/admin/usuarios" element={<Usuarios />} />
                 <Route path="/admin/solicitantes" element={<Solicitantes />} />
-                <Route path="/admin/secretarias" element={<Secretarias />} />
+
                 <Route path="/admin/setores" element={<Setores />} />
                 <Route path="/admin/solicitacoes" element={<Solicitacoes />} />
                 <Route path="/admin/documentos-necessarios" element={<DocumentosNecessarios />} />
@@ -93,6 +93,7 @@ const App = () => {
               {/* Configuration Routes (Master Only) */}
               <Route element={<ProtectedRoute allowedRoles={['Master']} />}>
                 <Route path="/admin/configuracoes" element={<Configuracoes />} />
+                <Route path="/admin/secretarias" element={<Secretarias />} />
               </Route>
 
               {/* Legacy routes - redirect or keep for compatibility if needed */}
