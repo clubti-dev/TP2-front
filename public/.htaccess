@@ -1,5 +1,10 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  
+  # Force trailing slash for directories
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^(.*[^/])$ $1/ [L,R=301]
+
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d

@@ -56,7 +56,7 @@ const formSchema = z.object({
 const Setores = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+    const { user, isAuthenticated, isLoading: authLoading, refreshUser } = useAuth();
 
     const [setores, setSetores] = useState<Setor[]>([]);
     const [filteredSetores, setFilteredSetores] = useState<Setor[]>([]);
@@ -101,9 +101,10 @@ const Setores = () => {
 
     useEffect(() => {
         if (isAuthenticated) {
+            refreshUser();
             fetchData();
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, refreshUser]);
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {

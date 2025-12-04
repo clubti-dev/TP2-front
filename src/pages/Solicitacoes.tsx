@@ -56,7 +56,7 @@ import {
 const Solicitacoes = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+    const { user, isAuthenticated, isLoading: authLoading, refreshUser } = useAuth();
 
     const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
     const [filteredSolicitacoes, setFilteredSolicitacoes] = useState<Solicitacao[]>([]);
@@ -82,9 +82,10 @@ const Solicitacoes = () => {
 
     useEffect(() => {
         if (isAuthenticated) {
+            refreshUser();
             loadData();
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, refreshUser]);
 
     const loadData = async () => {
         try {
