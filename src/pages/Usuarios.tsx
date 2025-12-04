@@ -163,15 +163,27 @@ const Usuarios = () => {
   }, [isAuthenticated, refreshUser]);
 
   // Reactive update for Admin secretariat
+  // Reactive update for Admin secretariat and profile
   useEffect(() => {
-    if (isDialogOpen && !selectedUsuario && currentUser?.perfil?.descricao === 'Admin' && currentUser?.setor?.secretaria) {
-      const secretariaId = currentUser.setor.secretaria.id.toString();
-      if (selectedSecretaria !== secretariaId) {
-        setSelectedSecretaria(secretariaId);
-        loadSetores(Number(secretariaId));
+    if (isDialogOpen && !selectedUsuario && currentUser?.perfil?.descricao === 'Admin') {
+      // Set Secretariat
+      if (currentUser?.setor?.secretaria) {
+        const secretariaId = currentUser.setor.secretaria.id.toString();
+        if (selectedSecretaria !== secretariaId) {
+          setSelectedSecretaria(secretariaId);
+          loadSetores(Number(secretariaId));
+        }
+      }
+
+      // Set Default Profile (Usuario)
+      if (!selectedPerfil && perfis.length > 0) {
+        const usuarioPerfil = perfis.find(p => p.descricao.toLowerCase().includes('usuário') || p.descricao.toLowerCase().includes('usuario'));
+        if (usuarioPerfil) {
+          setSelectedPerfil(usuarioPerfil.id.toString());
+        }
       }
     }
-  }, [currentUser, isDialogOpen, selectedUsuario, selectedSecretaria]);
+  }, [currentUser, isDialogOpen, selectedUsuario, selectedSecretaria, selectedPerfil, perfis]);
 
   const formatCPF = (value: string) => {
     return value
@@ -234,6 +246,12 @@ const Usuarios = () => {
       const secretariaId = currentUser.setor.secretaria.id.toString();
       setSelectedSecretaria(secretariaId);
       loadSetores(Number(secretariaId));
+
+      // Auto-select "Usuário" profile
+      const usuarioPerfil = perfis.find(p => p.descricao.toLowerCase().includes('usuário') || p.descricao.toLowerCase().includes('usuario'));
+      if (usuarioPerfil) {
+        setSelectedPerfil(usuarioPerfil.id.toString());
+      }
     } else {
       setSelectedSecretaria("");
       setSetores([]);
@@ -671,21 +689,23 @@ const Usuarios = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Perfil</Label>
-              <Select value={selectedPerfil} onValueChange={setSelectedPerfil}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {perfis.map((perfil) => (
-                    <SelectItem key={perfil.id} value={perfil.id.toString()}>
-                      {perfil.descricao}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {currentUser?.perfil?.descricao !== 'Admin' && (
+              <div className="space-y-2">
+                <Label>Perfil</Label>
+                <Select value={selectedPerfil} onValueChange={setSelectedPerfil}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {perfis.map((perfil) => (
+                      <SelectItem key={perfil.id} value={perfil.id.toString()}>
+                        {perfil.descricao}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <DialogFooter className="px-6 pb-6">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>
