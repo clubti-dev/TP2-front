@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import MobileSidebar from "./MobileSidebar";
 import { useState, useEffect } from "react";
 import { municipioService, Municipio } from "@/services/municipioService";
+import { getStorageUrl } from "@/utils/urlUtils";
 
 const AdminHeader = () => {
     const { user, logout } = useAuth();
@@ -60,7 +61,7 @@ const AdminHeader = () => {
                             <div className="h-8 w-8 rounded-full bg-primary-foreground/20 flex items-center justify-center overflow-hidden">
                                 {user?.avatar ? (
                                     <img
-                                        src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${user.avatar}`}
+                                        src={getStorageUrl(user.avatar) || ''}
                                         alt={user.name}
                                         className="h-full w-full object-cover"
                                     />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { municipioService, Municipio } from "@/services/municipioService";
+import { getStorageUrl } from "@/utils/urlUtils";
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, FileText, Users, Settings, ChevronDown, ChevronRight, FolderPlus, ArrowRightLeft, UserCircle, FileQuestion } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -75,7 +76,7 @@ const AdminSidebar = ({ mobile, onClose }: AdminSidebarProps) => {
       <div className="h-[72px] flex flex-col justify-center items-center px-6 border-b">
         {municipio?.logo_municipio ? (
           <img
-            src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${municipio.logo_municipio}`}
+            src={getStorageUrl(municipio.logo_municipio) || ''}
             alt="Logo"
             className="h-12 w-auto object-contain"
           />

@@ -11,6 +11,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { municipioService, Municipio } from "@/services/municipioService";
+import { getStorageUrl } from "@/utils/urlUtils";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -53,7 +54,7 @@ const Header = () => {
           <NavLink to="/" className="flex items-center gap-3 text-header-foreground">
             {municipio?.logo_municipio ? (
               <img
-                src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${municipio.logo_municipio}`}
+                src={getStorageUrl(municipio.logo_municipio) || ''}
                 alt="Logo"
                 className="h-10 w-auto object-contain rounded-lg bg-white/10 backdrop-blur p-1"
               />
