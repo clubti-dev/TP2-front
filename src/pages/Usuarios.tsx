@@ -165,20 +165,33 @@ const Usuarios = () => {
   // Reactive update for Admin secretariat
   // Reactive update for Admin secretariat and profile
   useEffect(() => {
+    console.log("Usuarios.tsx: Reactive Effect Triggered");
+    console.log("currentUser:", currentUser);
+    console.log("isDialogOpen:", isDialogOpen);
+    console.log("selectedUsuario:", selectedUsuario);
+    console.log("currentUser?.perfil?.descricao:", currentUser?.perfil?.descricao);
+    console.log("currentUser?.setor?.secretaria:", currentUser?.setor?.secretaria);
+
     if (isDialogOpen && !selectedUsuario && currentUser?.perfil?.descricao === 'Admin') {
+      console.log("Usuarios.tsx: Admin condition met");
+
       // Set Secretariat
       if (currentUser?.setor?.secretaria) {
         const secretariaId = currentUser.setor.secretaria.id.toString();
+        console.log("Usuarios.tsx: Setting Secretariat ID:", secretariaId);
         if (selectedSecretaria !== secretariaId) {
           setSelectedSecretaria(secretariaId);
           loadSetores(Number(secretariaId));
         }
+      } else {
+        console.warn("Usuarios.tsx: Admin user missing secretaria!");
       }
 
       // Set Default Profile (Usuario)
       if (!selectedPerfil && perfis.length > 0) {
         const usuarioPerfil = perfis.find(p => p.descricao.toLowerCase().includes('usuário') || p.descricao.toLowerCase().includes('usuario'));
         if (usuarioPerfil) {
+          console.log("Usuarios.tsx: Setting Default Profile:", usuarioPerfil.descricao);
           setSelectedPerfil(usuarioPerfil.id.toString());
         }
       }
@@ -742,6 +755,11 @@ const Usuarios = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Debug Info - Temporary */}
+      <div className="mt-8 p-4 bg-gray-100 rounded text-xs font-mono overflow-auto max-h-60">
+        <p className="font-bold mb-2">Debug Info (Envie um print disso se houver erro):</p>
+        <pre>{JSON.stringify(currentUser, null, 2)}</pre>
+      </div>
     </AdminLayout>
   );
 };
