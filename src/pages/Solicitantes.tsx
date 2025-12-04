@@ -55,7 +55,7 @@ const formSchema = z.object({
     complemento: z.string().optional(),
 });
 
-import AdminLayout from "@/components/AdminLayout";
+
 
 const Solicitantes = () => {
     const [solicitantes, setSolicitantes] = useState<Solicitante[]>([]);
@@ -212,7 +212,8 @@ const Solicitantes = () => {
     });
 
     return (
-        <AdminLayout>
+
+        <div className="p-8">
             <div className="container mx-auto px-4 py-8">
                 <div className="flex justify-between items-center">
                     <div>
@@ -493,7 +494,7 @@ const Solicitantes = () => {
                     </DialogContent>
                 </Dialog>
             </div>
-        </AdminLayout>
+        </div>
     );
 };
 

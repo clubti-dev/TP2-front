@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import AdminLayout from "@/components/AdminLayout";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -179,116 +179,115 @@ const Secretarias = () => {
   if (authLoading) return null;
 
   return (
-    <AdminLayout>
-      <div className="p-8 space-y-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Secretarias</h1>
-            <p className="text-gray-500">Gerencie as secretarias municipais</p>
-          </div>
-          <div className="flex gap-2">
-            <DataTableFilterTrigger filter={filter} />
-            <Button onClick={handleNew} size="icon">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
 
-        <div className="mb-4 flex justify-end">
-          <DataTableFilterContent filter={filter} className="w-full max-w-3xl ml-auto" />
+    <div className="p-8 space-y-8">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Secretarias</h1>
+          <p className="text-gray-500">Gerencie as secretarias municipais</p>
         </div>
-
-        <div className="bg-white rounded-lg border shadow-sm">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Sigla</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                  </TableCell>
-                </TableRow>
-              ) : filteredSecretarias.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center py-8 text-gray-500">
-                    Nenhuma secretaria encontrada.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredSecretarias.map((secretaria) => (
-                  <TableRow key={secretaria.id}>
-                    <TableCell className="font-medium">{secretaria.sigla || "-"}</TableCell>
-                    <TableCell>{secretaria.descricao}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(secretaria)}>
-                          <Pencil className="h-4 w-4 text-blue-600" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(secretaria.id)}>
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+        <div className="flex gap-2">
+          <DataTableFilterTrigger filter={filter} />
+          <Button onClick={handleNew} size="icon">
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
-
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="p-0 overflow-hidden">
-            <DialogHeader className="bg-primary text-primary-foreground p-6">
-              <DialogTitle className="text-2xl font-bold">{editingId ? "Editar Secretaria" : "Nova Secretaria"}</DialogTitle>
-            </DialogHeader>
-            <div className="p-6">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="sigla"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sigla</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Ex: SEMED" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="descricao"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Ex: Secretaria Municipal de Educação" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button type="submit">Salvar</Button>
-                  </div>
-                </form>
-              </Form>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
-    </AdminLayout>
+
+      <div className="mb-4 flex justify-end">
+        <DataTableFilterContent filter={filter} className="w-full max-w-3xl ml-auto" />
+      </div>
+
+      <div className="bg-white rounded-lg border shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Sigla</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                </TableCell>
+              </TableRow>
+            ) : filteredSecretarias.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                  Nenhuma secretaria encontrada.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredSecretarias.map((secretaria) => (
+                <TableRow key={secretaria.id}>
+                  <TableCell className="font-medium">{secretaria.sigla || "-"}</TableCell>
+                  <TableCell>{secretaria.descricao}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(secretaria)}>
+                        <Pencil className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(secretaria.id)}>
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="p-0 overflow-hidden">
+          <DialogHeader className="bg-primary text-primary-foreground p-6">
+            <DialogTitle className="text-2xl font-bold">{editingId ? "Editar Secretaria" : "Nova Secretaria"}</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="sigla"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sigla</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: SEMED" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="descricao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: Secretaria Municipal de Educação" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">Salvar</Button>
+                </div>
+              </form>
+            </Form>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

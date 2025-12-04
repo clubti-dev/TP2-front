@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import AdminLayout from "@/components/AdminLayout";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -230,132 +230,131 @@ const Setores = () => {
     if (authLoading) return null;
 
     return (
-        <AdminLayout>
-            <div className="p-8 space-y-8">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Setores</h1>
-                        <p className="text-gray-500">Gerencie os setores das secretarias</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <DataTableFilterTrigger filter={filter} />
-                        <Button onClick={handleNew} size="icon">
-                            <Plus className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
 
-                <div className="mb-4 flex justify-end">
-                    <DataTableFilterContent filter={filter} className="w-full max-w-3xl ml-auto" />
+        <div className="p-8 space-y-8">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Setores</h1>
+                    <p className="text-gray-500">Gerencie os setores das secretarias</p>
                 </div>
+                <div className="flex gap-2">
+                    <DataTableFilterTrigger filter={filter} />
+                    <Button onClick={handleNew} size="icon">
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
 
-                <div className="bg-white rounded-lg border shadow-sm">
-                    <Table>
-                        <TableHeader>
+            <div className="mb-4 flex justify-end">
+                <DataTableFilterContent filter={filter} className="w-full max-w-3xl ml-auto" />
+            </div>
+
+            <div className="bg-white rounded-lg border shadow-sm">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Descrição</TableHead>
+                            <TableHead>Secretaria</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading ? (
                             <TableRow>
-                                <TableHead>Descrição</TableHead>
-                                <TableHead>Secretaria</TableHead>
-                                <TableHead className="text-right">Ações</TableHead>
+                                <TableCell colSpan={3} className="text-center py-8">
+                                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                                </TableCell>
                             </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center py-8">
-                                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                        ) : filteredSetores.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                                    Nenhum setor encontrado.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredSetores.map((setor) => (
+                                <TableRow key={setor.id}>
+                                    <TableCell className="font-medium">{setor.descricao}</TableCell>
+                                    <TableCell>{setor.secretaria?.sigla || "-"}</TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(setor)}>
+                                                <Pencil className="h-4 w-4 text-blue-600" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(setor.id)}>
+                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
-                            ) : filteredSetores.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center py-8 text-gray-500">
-                                        Nenhum setor encontrado.
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                filteredSetores.map((setor) => (
-                                    <TableRow key={setor.id}>
-                                        <TableCell className="font-medium">{setor.descricao}</TableCell>
-                                        <TableCell>{setor.secretaria?.sigla || "-"}</TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(setor)}>
-                                                    <Pencil className="h-4 w-4 text-blue-600" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(setor.id)}>
-                                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
 
-                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                    <DialogContent className="p-0 overflow-hidden">
-                        <DialogHeader className="bg-primary text-primary-foreground p-6">
-                            <DialogTitle className="text-2xl font-bold">{editingId ? "Editar Setor" : "Novo Setor"}</DialogTitle>
-                        </DialogHeader>
-                        <div className="p-6">
-                            <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                    {(!user?.setor?.secretaria || user?.perfil?.descricao !== 'Admin') && (
-                                        <FormField
-                                            control={form.control}
-                                            name="secretaria_id"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Secretaria</FormLabel>
-                                                    <Select
-                                                        onValueChange={field.onChange}
-                                                        defaultValue={field.value}
-                                                    >
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Selecione uma secretaria" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            {secretarias.map((secretaria) => (
-                                                                <SelectItem key={secretaria.id} value={secretaria.id.toString()}>
-                                                                    {secretaria.sigla} - {secretaria.descricao}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    )}
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="p-0 overflow-hidden">
+                    <DialogHeader className="bg-primary text-primary-foreground p-6">
+                        <DialogTitle className="text-2xl font-bold">{editingId ? "Editar Setor" : "Novo Setor"}</DialogTitle>
+                    </DialogHeader>
+                    <div className="p-6">
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                {(!user?.setor?.secretaria || user?.perfil?.descricao !== 'Admin') && (
                                     <FormField
                                         control={form.control}
-                                        name="descricao"
+                                        name="secretaria_id"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Descrição</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} placeholder="Ex: Departamento de TI" />
-                                                </FormControl>
+                                                <FormLabel>Secretaria</FormLabel>
+                                                <Select
+                                                    onValueChange={field.onChange}
+                                                    defaultValue={field.value}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecione uma secretaria" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {secretarias.map((secretaria) => (
+                                                            <SelectItem key={secretaria.id} value={secretaria.id.toString()}>
+                                                                {secretaria.sigla} - {secretaria.descricao}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                    <div className="flex justify-end gap-2">
-                                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                                            Cancelar
-                                        </Button>
-                                        <Button type="submit">Salvar</Button>
-                                    </div>
-                                </form>
-                            </Form>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            </div>
-        </AdminLayout>
+                                )}
+                                <FormField
+                                    control={form.control}
+                                    name="descricao"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Descrição</FormLabel>
+                                            <FormControl>
+                                                <Input {...field} placeholder="Ex: Departamento de TI" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="flex justify-end gap-2">
+                                    <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                                        Cancelar
+                                    </Button>
+                                    <Button type="submit">Salvar</Button>
+                                </div>
+                            </form>
+                        </Form>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
 };
 

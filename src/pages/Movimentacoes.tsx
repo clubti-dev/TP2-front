@@ -1,9 +1,9 @@
-import AdminLayout from "@/components/AdminLayout";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Movimentacoes = () => {
     return (
-        <AdminLayout>
+        <div className="p-8">
             <h1 className="text-3xl font-bold mb-8">Movimentações</h1>
             <div className="grid gap-6">
                 <Card>
@@ -16,7 +16,7 @@ const Movimentacoes = () => {
                     </CardContent>
                 </Card>
             </div>
-        </AdminLayout>
+        </div>
     );
 };
 

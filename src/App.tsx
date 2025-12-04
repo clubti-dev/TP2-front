@@ -9,7 +9,7 @@ import Abertura from "./pages/Abertura";
 import Consulta from "./pages/Consulta";
 import Contatos from "./pages/Contatos";
 import Admin from "./pages/Admin";
-import AdminDashboard from "./pages/AdminDashboard";
+import Dashboard from "./pages/Dashboard";
 import Secretarias from "./pages/Secretarias";
 import Assuntos from "./pages/Assuntos";
 import Usuarios from "./pages/Usuarios";
@@ -29,6 +29,7 @@ import Setores from "./pages/Setores";
 import { useEffect } from "react";
 import { municipioService } from "./services/municipioService";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MainLayout from "./components/layout/MainLayout";
 
 const queryClient = new QueryClient();
 
@@ -71,29 +72,31 @@ const App = () => {
               <Route path="/admin" element={<Admin />} />
               <Route path="/esqueci-senha" element={<EsqueciSenha />} />
               <Route path="/redefinir-senha" element={<RedefinirSenha />} />
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/protocolos" element={<Protocolos />} />
-                <Route path="/admin/protocolos/:id" element={<ProtocoloDetalhes />} />
-                <Route path="/admin/perfil" element={<Perfil />} />
-                <Route path="/admin/movimentacoes" element={<Movimentacoes />} />
-              </Route>
+              {/* Protected Routes wrapped in MainLayout */}
+              <Route element={<MainLayout />}>
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/admin/dashboard" element={<Dashboard />} />
+                  <Route path="/admin/protocolos" element={<Protocolos />} />
+                  <Route path="/admin/protocolos/:id" element={<ProtocoloDetalhes />} />
+                  <Route path="/admin/perfil" element={<Perfil />} />
+                  <Route path="/admin/movimentacoes" element={<Movimentacoes />} />
+                </Route>
 
-              {/* Management Routes (Master & Admin) */}
-              <Route element={<ProtectedRoute allowedRoles={['Master', 'Admin']} />}>
-                <Route path="/admin/usuarios" element={<Usuarios />} />
-                <Route path="/admin/solicitantes" element={<Solicitantes />} />
+                {/* Management Routes (Master & Admin) */}
+                <Route element={<ProtectedRoute allowedRoles={['Master', 'Admin']} />}>
+                  <Route path="/admin/usuarios" element={<Usuarios />} />
+                  <Route path="/admin/solicitantes" element={<Solicitantes />} />
 
-                <Route path="/admin/setores" element={<Setores />} />
-                <Route path="/admin/solicitacoes" element={<Solicitacoes />} />
-                <Route path="/admin/documentos-necessarios" element={<DocumentosNecessarios />} />
-              </Route>
+                  <Route path="/admin/setores" element={<Setores />} />
+                  <Route path="/admin/solicitacoes" element={<Solicitacoes />} />
+                  <Route path="/admin/documentos-necessarios" element={<DocumentosNecessarios />} />
+                </Route>
 
-              {/* Configuration Routes (Master Only) */}
-              <Route element={<ProtectedRoute allowedRoles={['Master']} />}>
-                <Route path="/admin/configuracoes" element={<Configuracoes />} />
-                <Route path="/admin/secretarias" element={<Secretarias />} />
+                {/* Configuration Routes (Master Only) */}
+                <Route element={<ProtectedRoute allowedRoles={['Master']} />}>
+                  <Route path="/admin/configuracoes" element={<Configuracoes />} />
+                  <Route path="/admin/secretarias" element={<Secretarias />} />
+                </Route>
               </Route>
 
               {/* Legacy routes - redirect or keep for compatibility if needed */}

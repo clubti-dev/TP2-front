@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import AdminLayout from "@/components/AdminLayout";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -296,11 +296,9 @@ const Solicitacoes = () => {
 
     if (authLoading) {
         return (
-            <AdminLayout>
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-            </AdminLayout>
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
         );
     }
 
@@ -309,7 +307,8 @@ const Solicitacoes = () => {
     }
 
     return (
-        <AdminLayout>
+
+        <div className="p-8">
             <div className="container mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8 flex items-center justify-between">
@@ -532,7 +531,7 @@ const Solicitacoes = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog >
-        </AdminLayout >
+        </div>
     );
 };
 

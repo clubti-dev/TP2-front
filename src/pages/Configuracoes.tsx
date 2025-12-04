@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import AdminLayout from "@/components/AdminLayout";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -144,7 +144,8 @@ const Configuracoes = () => {
     };
 
     return (
-        <AdminLayout>
+
+        <div className="p-8">
             <h1 className="text-3xl font-bold mb-8">Configurações</h1>
             <div className="grid gap-6 md:grid-cols-2">
                 <Card>
@@ -523,7 +524,7 @@ const Configuracoes = () => {
                     </div>
                 </DialogContent>
             </Dialog>
-        </AdminLayout>
+        </div>
     );
 };
 
