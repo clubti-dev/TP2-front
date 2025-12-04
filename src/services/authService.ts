@@ -18,8 +18,15 @@ export interface AuthResponse {
     name: string;
     cpf: string;
     email?: string;
-    role?: string;
     avatar?: string;
+    perfil?: {
+      id: number;
+      descricao: string;
+    };
+    setor?: {
+      id: number;
+      descricao: string;
+    };
   };
 }
 

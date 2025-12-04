@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { municipioService, Municipio } from "@/services/municipioService";
 import { Settings, Upload, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { getStorageUrl } from "@/utils/urlUtils";
 
 const formSchema = z.object({
     nome_municipio: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -165,7 +166,7 @@ const Configuracoes = () => {
                                     <div className="flex items-center gap-4">
                                         {municipio.logo_municipio ? (
                                             <img
-                                                src={`${import.meta.env.VITE_API_URL?.replace('/api', '')}/storage/${municipio.logo_municipio}`}
+                                                src={getStorageUrl(municipio.logo_municipio) || ''}
                                                 alt="Logo Município"
                                                 className="h-16 w-16 object-contain rounded-md border"
                                             />

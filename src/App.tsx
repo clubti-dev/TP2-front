@@ -28,6 +28,7 @@ import DocumentosNecessarios from "./pages/DocumentosNecessarios";
 import Setores from "./pages/Setores";
 import { useEffect } from "react";
 import { municipioService } from "./services/municipioService";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -70,18 +71,29 @@ const App = () => {
               <Route path="/admin" element={<Admin />} />
               <Route path="/esqueci-senha" element={<EsqueciSenha />} />
               <Route path="/redefinir-senha" element={<RedefinirSenha />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/protocolos" element={<Protocolos />} />
-              <Route path="/admin/protocolos/:id" element={<ProtocoloDetalhes />} />
-              <Route path="/admin/usuarios" element={<Usuarios />} />
-              <Route path="/admin/perfil" element={<Perfil />} />
-              <Route path="/admin/solicitantes" element={<Solicitantes />} />
-              <Route path="/admin/configuracoes" element={<Configuracoes />} />
-              <Route path="/admin/movimentacoes" element={<Movimentacoes />} />
-              <Route path="/admin/secretarias" element={<Secretarias />} />
-              <Route path="/admin/solicitacoes" element={<Solicitacoes />} />
-              <Route path="/admin/documentos-necessarios" element={<DocumentosNecessarios />} />
-              <Route path="/admin/setores" element={<Setores />} />
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/protocolos" element={<Protocolos />} />
+                <Route path="/admin/protocolos/:id" element={<ProtocoloDetalhes />} />
+                <Route path="/admin/perfil" element={<Perfil />} />
+                <Route path="/admin/movimentacoes" element={<Movimentacoes />} />
+              </Route>
+
+              {/* Management Routes (Master & Admin) */}
+              <Route element={<ProtectedRoute allowedRoles={['Master', 'Admin']} />}>
+                <Route path="/admin/usuarios" element={<Usuarios />} />
+                <Route path="/admin/solicitantes" element={<Solicitantes />} />
+                <Route path="/admin/secretarias" element={<Secretarias />} />
+                <Route path="/admin/setores" element={<Setores />} />
+                <Route path="/admin/solicitacoes" element={<Solicitacoes />} />
+                <Route path="/admin/documentos-necessarios" element={<DocumentosNecessarios />} />
+              </Route>
+
+              {/* Configuration Routes (Master Only) */}
+              <Route element={<ProtectedRoute allowedRoles={['Master']} />}>
+                <Route path="/admin/configuracoes" element={<Configuracoes />} />
+              </Route>
 
               {/* Legacy routes - redirect or keep for compatibility if needed */}
               <Route path="/cadastro/assuntos" element={<Assuntos />} />
