@@ -310,7 +310,7 @@ const Setores = () => {
                                                 <Select
                                                     onValueChange={field.onChange}
                                                     defaultValue={field.value}
-                                                    disabled={user?.perfil?.descricao === 'Admin'}
+                                                    disabled={user?.perfil?.descricao === 'Admin' && !!user?.setor?.secretaria}
                                                 >
                                                     <FormControl>
                                                         <SelectTrigger>

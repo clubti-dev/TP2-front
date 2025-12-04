@@ -422,7 +422,7 @@ const Solicitacoes = () => {
                                     setSetorId(""); // Clear sector when secretariat changes
                                     setErrors((prev) => ({ ...prev, secretaria: undefined }));
                                 }}
-                                disabled={user?.perfil?.descricao === 'Admin'}
+                                disabled={user?.perfil?.descricao === 'Admin' && !!user?.setor?.secretaria}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione uma secretaria" />

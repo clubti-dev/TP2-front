@@ -666,7 +666,7 @@ const Usuarios = () => {
                 <Select
                   value={selectedSecretaria}
                   onValueChange={handleSecretariaChange}
-                  disabled={currentUser?.perfil?.descricao === 'Admin'}
+                  disabled={currentUser?.perfil?.descricao === 'Admin' && !!currentUser?.setor?.secretaria}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione..." />
@@ -755,11 +755,6 @@ const Usuarios = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {/* Debug Info - Temporary */}
-      <div className="mt-8 p-4 bg-gray-100 rounded text-xs font-mono overflow-auto max-h-60">
-        <p className="font-bold mb-2">Debug Info (Envie um print disso se houver erro):</p>
-        <pre>{JSON.stringify(currentUser, null, 2)}</pre>
-      </div>
     </AdminLayout>
   );
 };
