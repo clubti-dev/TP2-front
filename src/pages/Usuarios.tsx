@@ -53,7 +53,7 @@ import {
 } from "@/components/ui/select";
 
 const Usuarios = () => {
-  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user: currentUser, isAuthenticated, isLoading: authLoading, refreshUser } = useAuth();
   const { toast } = useToast();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [filteredUsuarios, setFilteredUsuarios] = useState<Usuario[]>([]);
@@ -157,9 +157,10 @@ const Usuarios = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
+      refreshUser();
       loadUsuarios();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, refreshUser]);
 
   const formatCPF = (value: string) => {
     return value

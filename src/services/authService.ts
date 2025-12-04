@@ -205,4 +205,25 @@ export const authService = {
       throw new Error(errorData.message || "Erro ao redefinir senha");
     }
   },
+
+  async refreshProfile(): Promise<AuthResponse["user"]> {
+    const token = this.getToken();
+    if (!token) throw new Error("No token found");
+
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to refresh profile");
+    }
+
+    const user = await response.json();
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    return user;
+  },
 };

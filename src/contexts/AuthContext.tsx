@@ -7,6 +7,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +35,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await authService.logout();
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const updatedUser = await authService.refreshProfile();
+      setUser(updatedUser);
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -42,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         logout,
+        refreshUser,
       }}
     >
       {children}
