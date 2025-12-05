@@ -80,13 +80,15 @@ const Usuarios = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Auto-select first sector if Profile is Admin
+  // Auto-select first sector if Profile is Admin - REMOVED per user request
+  /*
   useEffect(() => {
     const selectedPerfilObj = perfis.find(p => p.id.toString() === selectedPerfil);
     if (selectedPerfilObj?.descricao === 'Admin' && setores.length > 0 && !selectedSetor) {
       setSelectedSetor(setores[0].id.toString());
     }
   }, [selectedPerfil, setores, selectedSetor, perfis]);
+  */
 
   // Helper function to get badge class based on profile
   const getPerfilBadgeClass = (descricao: string) => {
@@ -227,6 +229,12 @@ const Usuarios = () => {
     { key: "name", label: "Nome", type: "text" },
     { key: "cpf", label: "CPF", type: "text" },
     { key: "email", label: "E-mail", type: "text" },
+    {
+      key: "secretaria",
+      label: "Secretaria",
+      type: "select",
+      options: secretarias.map(s => ({ label: s.sigla, value: s.id.toString() }))
+    },
   ];
 
   const handleFilterChange = (filters: ActiveFilter[]) => {
@@ -237,13 +245,18 @@ const Usuarios = () => {
 
     const filtered = usuarios.filter((usuario) => {
       return filters.every((filter) => {
+        if (filter.key === "secretaria") {
+          // Check direct secretariat or sector's secretariat
+          const userSecId = usuario.secretaria?.id?.toString() || usuario.setor?.secretaria?.id?.toString();
+          return userSecId === filter.value;
+        }
+
         const value = String(usuario[filter.key as keyof Usuario]).toLowerCase();
         const filterValue = filter.value.toLowerCase();
         return value.includes(filterValue);
       });
     });
 
-    setFilteredUsuarios(filtered);
     setFilteredUsuarios(filtered);
   };
 
@@ -401,8 +414,8 @@ const Usuarios = () => {
         name: formData.name.trim(),
         cpf: extractCPFNumbers(formData.cpf),
         email: formData.email.trim().toLowerCase(),
-        setor_id: selectedSetor ? Number(selectedSetor) : null,
-        secretaria_id: (!selectedSetor && selectedSecretaria) ? Number(selectedSecretaria) : null,
+        setor_id: (selectedSetor && !perfis.find(p => p.id.toString() === selectedPerfil)?.descricao.includes('Admin')) ? Number(selectedSetor) : null,
+        secretaria_id: selectedSecretaria ? Number(selectedSecretaria) : null,
         perfil_id: selectedPerfil ? Number(selectedPerfil) : null,
       };
 
@@ -542,15 +555,15 @@ const Usuarios = () => {
                     <TableCell>{formatCPF(usuario.cpf)}</TableCell>
                     <TableCell>{usuario.email}</TableCell>
                     <TableCell>
-                      {usuario.setor?.secretaria?.sigla ? (
+                      {usuario.setor?.secretaria?.sigla || usuario.secretaria?.sigla ? (
                         <Popover>
                           <PopoverTrigger asChild>
                             <span className="cursor-help underline decoration-dotted">
-                              {usuario.setor.secretaria.sigla}
+                              {usuario.setor?.secretaria?.sigla || usuario.secretaria?.sigla}
                             </span>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-2">
-                            <p className="text-sm">{usuario.setor.secretaria.descricao}</p>
+                            <p className="text-sm">{usuario.setor?.secretaria?.descricao || usuario.secretaria?.descricao}</p>
                           </PopoverContent>
                         </Popover>
                       ) : (

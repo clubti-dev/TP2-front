@@ -10,7 +10,8 @@ interface ProcessoResult {
   protocolo: string;
   assunto: string;
   data: string;
-  status: "em_analise" | "deferido" | "indeferido" | "pendente";
+  status: "em_analise" | "deferido" | "indeferido" | "pendente" | "aberto";
+  tem_anexos?: boolean;
   etapas: { titulo: string; data: string; concluida: boolean }[];
 }
 
@@ -51,12 +52,14 @@ const Consulta = () => {
 
   const getStatusBadge = (status: ProcessoResult["status"]) => {
     const styles = {
+      aberto: "bg-blue-500/20 text-blue-600",
       em_analise: "bg-accent/20 text-accent-foreground",
       deferido: "bg-success/20 text-success",
       indeferido: "bg-destructive/20 text-destructive",
       pendente: "bg-muted text-muted-foreground",
     };
     const labels = {
+      aberto: "Aberto",
       em_analise: "Em Análise",
       deferido: "Deferido",
       indeferido: "Indeferido",
@@ -176,6 +179,17 @@ const Consulta = () => {
                       <p className="font-medium">{resultado.data}</p>
                     </div>
                   </div>
+                  {resultado.tem_anexos !== undefined && (
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${resultado.tem_anexos ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"}`}>
+                        <FileText className="h-3 w-3" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Anexos</p>
+                        <p className="font-medium">{resultado.tem_anexos ? "Sim" : "Não"}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <h3 className="font-semibold mb-4">Andamento do Processo</h3>
@@ -184,8 +198,8 @@ const Consulta = () => {
                     <div key={index} className="flex items-start gap-3">
                       <div
                         className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${etapa.concluida
-                            ? "bg-success text-success-foreground"
-                            : "bg-muted text-muted-foreground"
+                          ? "bg-success text-success-foreground"
+                          : "bg-muted text-muted-foreground"
                           }`}
                       >
                         {etapa.concluida ? (

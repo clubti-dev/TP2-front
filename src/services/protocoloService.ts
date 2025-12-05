@@ -60,6 +60,22 @@ export const statusColors: Record<string, string> = {
   "Indeferido": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
 };
 
+export interface Movimentacao {
+  id: number;
+  protocolo_id: number;
+  usuario_id: number;
+  status_anterior: string | null; // Backend seems to store string or object?
+  status_novo: string;
+  observacao: string;
+  created_at: string;
+  usuario: {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+}
+
 export const protocoloService = {
   async getAll(): Promise<Protocolo[]> {
     const response = await fetch(`${API_BASE_URL}/protocolos`, {
@@ -86,6 +102,21 @@ export const protocoloService = {
 
     if (!response.ok) {
       throw new Error("Protocolo não encontrado");
+    }
+
+    return response.json();
+  },
+
+  async getMovimentacoes(protocoloId: number): Promise<Movimentacao[]> {
+    const response = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/movimentacoes`, {
+      headers: {
+        "Accept": "application/json",
+        ...authService.getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao carregar movimentações");
     }
 
     return response.json();

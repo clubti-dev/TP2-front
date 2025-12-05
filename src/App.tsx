@@ -15,6 +15,7 @@ import Assuntos from "./pages/Assuntos";
 import Usuarios from "./pages/Usuarios";
 import Protocolos from "./pages/Protocolos";
 import ProtocoloDetalhes from "./pages/ProtocoloDetalhes";
+import ProtocoloTimeline from "./pages/ProtocoloTimeline";
 import Configuracoes from "./pages/Configuracoes";
 import Movimentacoes from "./pages/Movimentacoes";
 import NotFound from "./pages/NotFound";
@@ -78,6 +79,7 @@ const App = () => {
                   <Route path="/admin/dashboard" element={<Dashboard />} />
                   <Route path="/admin/protocolos" element={<Protocolos />} />
                   <Route path="/admin/protocolos/:id" element={<ProtocoloDetalhes />} />
+                  <Route path="/admin/protocolos/:id/timeline" element={<ProtocoloTimeline />} />
                   <Route path="/admin/perfil" element={<Perfil />} />
                   <Route path="/admin/movimentacoes" element={<Movimentacoes />} />
                 </Route>

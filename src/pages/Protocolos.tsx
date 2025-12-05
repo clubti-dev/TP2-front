@@ -27,7 +27,6 @@ import { protocoloService, Protocolo, statusColors } from "@/services/protocoloS
 import { Plus, Pencil, Trash2, Loader2, FileStack, Eye, History } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import ProtocoloHistorico from "@/components/ProtocoloHistorico";
 import { useDataTableFilter, DataTableFilterTrigger, DataTableFilterContent, FilterColumn, ActiveFilter } from "@/components/DataTableFilter";
 
 const Protocolos = () => {
@@ -260,6 +259,14 @@ const Protocolos = () => {
                         <Button
                           variant="ghost"
                           size="icon"
+                          onClick={() => navigate(`/admin/protocolos/${protocolo.id}/timeline`)}
+                          title="Histórico / Timeline"
+                        >
+                          <History className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleOpenView(protocolo)}
                           title="Visualizar"
                         >
@@ -299,17 +306,7 @@ const Protocolos = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Historico Dialog */}
-      {
-        selectedProtocolo && (
-          <ProtocoloHistorico
-            protocolo={selectedProtocolo}
-            open={isHistoricoOpen}
-            onOpenChange={setIsHistoricoOpen}
-            onStatusChange={loadData}
-          />
-        )
-      }
+
     </div>
   );
 };
