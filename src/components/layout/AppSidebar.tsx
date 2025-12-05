@@ -65,9 +65,22 @@ export function AppSidebar() {
         },
         {
             icon: FileText,
-            label: "Protocolos",
-            href: "/admin/protocolos",
+            label: "Protocolo",
             roles: ["Master", "Admin", "Usuário"],
+            submenu: [
+                {
+                    icon: FileText,
+                    label: "Protocolos",
+                    href: "/admin/protocolos",
+                    roles: ["Master", "Admin", "Usuário"],
+                },
+                {
+                    icon: ArrowRightLeft,
+                    label: "Movimentação",
+                    href: "/admin/movimentacoes",
+                    roles: ["Master", "Admin", "Usuário"],
+                },
+            ],
         },
         {
             icon: FolderPlus,
@@ -78,7 +91,6 @@ export function AppSidebar() {
                 { icon: UserCircle, label: "Solicitantes", href: "/admin/solicitantes", roles: ["Master", "Admin"] },
                 { icon: FileQuestion, label: "Solicitações", href: "/admin/solicitacoes", roles: ["Master", "Admin"] },
                 { icon: FileText, label: "Documentos Necessários", href: "/admin/documentos-necessarios", roles: ["Master", "Admin"] },
-                { icon: ArrowRightLeft, label: "Movimentação", href: "/admin/movimentacoes", roles: ["Master", "Admin", "Usuário"] },
                 { icon: FileText, label: "Secretarias", href: "/admin/secretarias", roles: ["Master"] },
                 { icon: FolderPlus, label: "Setores", href: "/admin/setores", roles: ["Master", "Admin"] },
             ],
