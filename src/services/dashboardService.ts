@@ -6,6 +6,23 @@ export interface DashboardStats {
     aberto: number;
     em_andamento: number;
     concluido: number;
+    transferidos: number;
+    total_secretarias: number;
+    distribuicao_setores: Array<{
+        id: number;
+        descricao: string;
+        setores_count: number;
+    }>;
+    distribuicao_usuarios: Array<{
+        id: number;
+        descricao: string;
+        users_count: number;
+        setores: Array<{
+            id: number;
+            descricao: string;
+            users_count: number;
+        }>;
+    }>;
 }
 
 export const dashboardService = {
