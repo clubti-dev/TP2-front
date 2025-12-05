@@ -28,9 +28,10 @@ import { secretariaService, Secretaria } from "@/services/secretariaService";
 import { setorService, Setor } from "@/services/setorService";
 import { statusService, Status } from "@/services/statusService";
 import { movimentacaoService } from "@/services/movimentacaoService";
-import { FileStack, Eye, Upload, X, ArrowLeft, Loader2, Save, Send, Hash, Calendar, User, Building2, MessageSquare, MapPin, FileText, Image as ImageIcon, File } from "lucide-react";
+import { FileStack, Eye, Upload, X, ArrowLeft, Loader2, Save, Send, Hash, Calendar, User, Building2, MessageSquare, MapPin, FileText, Image as ImageIcon, File, History } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { idUtils } from "@/utils/idUtils";
 
 const ProtocoloDetalhes = () => {
     const { id } = useParams();
@@ -59,19 +60,29 @@ const ProtocoloDetalhes = () => {
         }
     }, [isAuthenticated, authLoading, navigate]);
 
+
     useEffect(() => {
         if (isAuthenticated && id) {
-            loadData();
+            const decodedId = idUtils.decode(id);
+            if (decodedId) {
+                loadData(decodedId);
+            } else {
+                toast({
+                    title: "Erro",
+                    description: "Protocolo não encontrado",
+                    variant: "destructive",
+                });
+                navigate("/admin/protocolos");
+            }
         }
     }, [isAuthenticated, id]);
 
-    const loadData = async () => {
+    const loadData = async (protocoloId: number) => {
         try {
             setIsLoading(true);
-            if (!id) return;
 
             const [protocoloData, secretariasData, statusData] = await Promise.all([
-                protocoloService.getById(Number(id)),
+                protocoloService.getById(protocoloId),
                 secretariaService.getAll(),
                 statusService.getAll(),
             ]);
@@ -94,6 +105,7 @@ const ProtocoloDetalhes = () => {
             setIsLoading(false);
         }
     };
+
 
     const loadSetores = async (secretariaId: number) => {
         try {
@@ -235,7 +247,7 @@ const ProtocoloDetalhes = () => {
 
             setDespacho("");
             setAnexoDespacho(null);
-            loadData();
+            loadData(protocolo.id);
         } catch (error) {
             toast({
                 title: "Erro",
@@ -260,16 +272,31 @@ const ProtocoloDetalhes = () => {
     return (
 
         <div className="container mx-auto px-4 py-8 max-w-[1600px]">
-            <div className="mb-6 flex justify-end">
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="bg-accent/20 hover:bg-accent/40 border-accent/50 text-primary"
-                    onClick={() => navigate("/admin/protocolos")}
-                    title="Voltar para lista"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
+            <div className="mb-6 flex justify-between items-center">
+                <div>
+                    <h1 className="text-xl font-bold">Dados do Protocolo</h1>
+                    <p className="text-sm text-muted-foreground">Informações da solicitação</p>
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-accent/20 hover:bg-accent/40 border-accent/50 text-primary"
+                        onClick={() => navigate(`/admin/protocolos/${idUtils.encode(protocolo?.id)}/timeline`)}
+                        title="Ver Histórico"
+                    >
+                        <History className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-accent/20 hover:bg-accent/40 border-accent/50 text-primary"
+                        onClick={() => navigate("/admin/protocolos")}
+                        title="Voltar para lista"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
 
 
@@ -277,11 +304,8 @@ const ProtocoloDetalhes = () => {
             <div className="space-y-8">
                 {/* Dados do Protocolo - Compacto e em Linha */}
                 <Card>
-                    <CardHeader className="bg-muted/30 pb-4">
-                        <CardTitle className="text-xl">Dados do Protocolo</CardTitle>
-                        <CardDescription>Informações da solicitação</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
+
+                    <CardContent className="space-y-6 pt-6">
                         <div className="flex flex-wrap gap-6 items-start">
                             <div className="flex items-center gap-3 min-w-[200px]">
                                 <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -299,7 +323,7 @@ const ProtocoloDetalhes = () => {
                                 </div>
                                 <div>
                                     <Label className="text-muted-foreground text-xs uppercase font-bold">Data de Abertura</Label>
-                                    <p className="text-base font-medium text-foreground">{formatDate(protocolo.data_solicitacao)}</p>
+                                    <p className="text-base font-bold text-foreground">{formatDate(protocolo.data_solicitacao)}</p>
                                 </div>
                             </div>
 
@@ -309,10 +333,9 @@ const ProtocoloDetalhes = () => {
                                 </div>
                                 <div className="min-w-0">
                                     <Label className="text-muted-foreground text-xs uppercase font-bold">Requerente</Label>
-                                    <p className="text-base font-medium text-foreground truncate" title={protocolo.solicitante?.nome}>
+                                    <p className="text-base font-bold text-foreground truncate" title={protocolo.solicitante?.nome}>
                                         {protocolo.solicitante?.nome || "-"}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">{protocolo.solicitante?.cpf_cnpj}</p>
                                 </div>
                             </div>
 
@@ -322,7 +345,7 @@ const ProtocoloDetalhes = () => {
                                 </div>
                                 <div className="min-w-0">
                                     <Label className="text-muted-foreground text-xs uppercase font-bold">Secretaria Atual</Label>
-                                    <p className="text-base font-medium text-foreground truncate" title={protocolo.solicitacao?.secretaria?.descricao}>
+                                    <p className="text-base font-bold text-foreground truncate" title={protocolo.solicitacao?.secretaria?.descricao}>
                                         {protocolo.solicitacao?.secretaria?.descricao || "-"}
                                     </p>
                                 </div>
@@ -334,7 +357,7 @@ const ProtocoloDetalhes = () => {
                                 </div>
                                 <div className="min-w-0">
                                     <Label className="text-muted-foreground text-xs uppercase font-bold">Setor Atual</Label>
-                                    <p className="text-base font-medium text-foreground truncate" title={protocolo.setor?.descricao}>
+                                    <p className="text-base font-bold text-foreground truncate" title={protocolo.setor?.descricao}>
                                         {protocolo.setor?.descricao || "-"}
                                     </p>
                                 </div>
@@ -348,7 +371,7 @@ const ProtocoloDetalhes = () => {
                                 </div>
                                 <div>
                                     <Label className="text-muted-foreground text-xs uppercase font-bold">Assunto</Label>
-                                    <p className="text-base font-medium text-foreground mt-1">
+                                    <p className="text-base font-bold text-foreground mt-1">
                                         {protocolo.solicitacao?.descricao || "-"}
                                     </p>
                                 </div>

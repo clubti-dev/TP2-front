@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { protocoloService, Movimentacao, Protocolo } from "@/services/protocoloService";
 import { statusService, Status } from "@/services/statusService";
-import { Loader2, Circle, CheckCircle2, Clock, XCircle, User, ArrowLeft, Calendar, Hash, Building2, MapPin, MessageSquare, FileStack, Eye } from "lucide-react";
+import { Loader2, Circle, CheckCircle2, Clock, XCircle, User, ArrowLeft, Calendar, Hash, Building2, MapPin, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 
 
+
+import { idUtils } from "@/utils/idUtils";
 
 const ProtocoloTimeline = () => {
     const { id } = useParams();
@@ -23,7 +25,12 @@ const ProtocoloTimeline = () => {
 
     useEffect(() => {
         if (id) {
-            loadData(Number(id));
+            const decodedId = idUtils.decode(id);
+            if (decodedId) {
+                loadData(decodedId);
+            } else {
+                navigate("/admin/protocolos");
+            }
         }
     }, [id]);
 
@@ -94,7 +101,11 @@ const ProtocoloTimeline = () => {
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-[1600px]">
-            <div className="mb-6 flex justify-end">
+            <div className="mb-6 flex justify-between items-center">
+                <div>
+                    <h1 className="text-xl font-bold">Dados do Protocolo</h1>
+                    <p className="text-sm text-muted-foreground">Informações da solicitação</p>
+                </div>
                 <Button
                     variant="outline"
                     size="icon"
@@ -109,11 +120,7 @@ const ProtocoloTimeline = () => {
             <div className="space-y-8">
                 {/* Top Card: Protocol Details (Matching ProtocoloDetalhes layout) */}
                 <Card>
-                    <CardHeader className="bg-muted/30 pb-4">
-                        <CardTitle className="text-xl">Dados do Protocolo</CardTitle>
-                        <CardDescription>Informações da solicitação</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-6 pt-6">
                         <div className="flex flex-wrap gap-6 items-start">
                             <div className="flex items-center gap-3 min-w-[200px]">
                                 <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -131,7 +138,7 @@ const ProtocoloTimeline = () => {
                                 </div>
                                 <div>
                                     <Label className="text-muted-foreground text-xs uppercase font-bold">Data de Abertura</Label>
-                                    <p className="text-base font-medium text-foreground">{formatDate(protocolo.data_solicitacao)}</p>
+                                    <p className="text-base font-bold text-foreground">{formatDate(protocolo.data_solicitacao)}</p>
                                 </div>
                             </div>
 
@@ -141,10 +148,9 @@ const ProtocoloTimeline = () => {
                                 </div>
                                 <div className="min-w-0">
                                     <Label className="text-muted-foreground text-xs uppercase font-bold">Requerente</Label>
-                                    <p className="text-base font-medium text-foreground truncate" title={protocolo.solicitante?.nome}>
+                                    <p className="text-base font-bold text-foreground truncate" title={protocolo.solicitante?.nome}>
                                         {protocolo.solicitante?.nome || "-"}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">{protocolo.solicitante?.cpf_cnpj}</p>
                                 </div>
                             </div>
 
@@ -154,7 +160,7 @@ const ProtocoloTimeline = () => {
                                 </div>
                                 <div className="min-w-0">
                                     <Label className="text-muted-foreground text-xs uppercase font-bold">Secretaria Atual</Label>
-                                    <p className="text-base font-medium text-foreground truncate" title={protocolo.solicitacao?.secretaria?.descricao}>
+                                    <p className="text-base font-bold text-foreground truncate" title={protocolo.solicitacao?.secretaria?.descricao}>
                                         {protocolo.solicitacao?.secretaria?.descricao || "-"}
                                     </p>
                                 </div>
@@ -166,47 +172,26 @@ const ProtocoloTimeline = () => {
                                 </div>
                                 <div className="min-w-0">
                                     <Label className="text-muted-foreground text-xs uppercase font-bold">Setor Atual</Label>
-                                    <p className="text-base font-medium text-foreground truncate" title={protocolo.setor?.descricao}>
+                                    <p className="text-base font-bold text-foreground truncate" title={protocolo.setor?.descricao}>
                                         {protocolo.setor?.descricao || "-"}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-start gap-3 pt-2 border-t">
-                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                                <MessageSquare className="h-5 w-5 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                                <Label className="text-muted-foreground text-xs uppercase font-bold">Assunto</Label>
-                                <p className="text-base font-medium text-foreground mt-1">
-                                    {protocolo.solicitacao?.descricao || "-"}
-                                </p>
-                            </div>
-                        </div>
-
-                        {protocolo.anexos && protocolo.anexos.length > 0 && (
-                            <div className="pt-2 border-t">
-                                <Label className="text-muted-foreground text-xs uppercase font-bold mb-3 block">Anexos</Label>
-                                <div className="flex flex-wrap gap-3">
-                                    {protocolo.anexos.map((anexo) => (
-                                        <a
-                                            key={anexo.id}
-                                            href={`${(import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api").replace(/\/api$/, '')}/storage/${anexo.caminho}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/30 hover:bg-muted transition-colors group"
-                                        >
-                                            <FileStack className="h-4 w-4 text-primary" />
-                                            <span className="text-sm font-medium truncate max-w-[150px]">
-                                                Anexo {anexo.id}
-                                            </span>
-                                            <Eye className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                                        </a>
-                                    ))}
+                        <div className="flex items-start gap-4 pt-2 border-t">
+                            <div className="flex items-start gap-3 flex-1">
+                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+                                    <MessageSquare className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                    <Label className="text-muted-foreground text-xs uppercase font-bold">Assunto</Label>
+                                    <p className="text-base font-bold text-foreground mt-1">
+                                        {protocolo.solicitacao?.descricao || "-"}
+                                    </p>
                                 </div>
                             </div>
-                        )}
+                        </div>
                     </CardContent>
                 </Card>
 

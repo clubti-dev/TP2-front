@@ -28,6 +28,7 @@ import { Plus, Pencil, Trash2, Loader2, FileStack, Eye, History } from "lucide-r
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useDataTableFilter, DataTableFilterTrigger, DataTableFilterContent, FilterColumn, ActiveFilter } from "@/components/DataTableFilter";
+import { idUtils } from "@/utils/idUtils";
 
 const Protocolos = () => {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ const Protocolos = () => {
   };
 
   const handleOpenView = (protocolo: Protocolo) => {
-    navigate(`/admin/protocolos/${protocolo.id}`);
+    navigate(`/admin/protocolos/${idUtils.encode(protocolo.id)}`);
   };
 
   const handleOpenDelete = (protocolo: Protocolo) => {
@@ -259,7 +260,7 @@ const Protocolos = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => navigate(`/admin/protocolos/${protocolo.id}/timeline`)}
+                          onClick={() => navigate(`/admin/protocolos/${idUtils.encode(protocolo.id)}/timeline`)}
                           title="Histórico / Timeline"
                         >
                           <History className="h-4 w-4" />
