@@ -28,7 +28,7 @@ import { secretariaService, Secretaria } from "@/services/secretariaService";
 import { setorService, Setor } from "@/services/setorService";
 import { statusService, Status } from "@/services/statusService";
 import { movimentacaoService } from "@/services/movimentacaoService";
-import { FileStack, Eye, Upload, X, ArrowLeft, Loader2, Save, Send, Hash, Calendar, User, Building2, MessageSquare, MapPin } from "lucide-react";
+import { FileStack, Eye, Upload, X, ArrowLeft, Loader2, Save, Send, Hash, Calendar, User, Building2, MessageSquare, MapPin, FileText, Image as ImageIcon, File } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -341,44 +341,64 @@ const ProtocoloDetalhes = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-start gap-3 pt-2 border-t">
-                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                                <MessageSquare className="h-5 w-5 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                                <Label className="text-muted-foreground text-xs uppercase font-bold">Assunto</Label>
-                                <p className="text-base font-medium text-foreground mt-1">
-                                    {protocolo.solicitacao?.descricao || "-"}
-                                </p>
-                            </div>
-                        </div>
-
-                        {protocolo.anexos && protocolo.anexos.length > 0 && (
-                            <div className="pt-2 border-t">
-                                <Label className="text-muted-foreground text-xs uppercase font-bold mb-3 block">Anexos</Label>
-                                <div className="flex flex-wrap gap-3">
-                                    {protocolo.anexos.map((anexo) => (
-                                        <a
-                                            key={anexo.id}
-                                            href={`${(import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api").replace(/\/api$/, '')}/storage/${anexo.caminho}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/30 hover:bg-muted transition-colors group"
-                                        >
-                                            <FileStack className="h-4 w-4 text-primary" />
-                                            <span className="text-sm font-medium truncate max-w-[150px]">
-                                                Anexo {anexo.id}
-                                            </span>
-                                            <Eye className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                                        </a>
-                                    ))}
+                        <div className="flex items-start justify-between gap-4 pt-2 border-t">
+                            <div className="flex items-start gap-3 flex-1">
+                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+                                    <MessageSquare className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                    <Label className="text-muted-foreground text-xs uppercase font-bold">Assunto</Label>
+                                    <p className="text-base font-medium text-foreground mt-1">
+                                        {protocolo.solicitacao?.descricao || "-"}
+                                    </p>
                                 </div>
                             </div>
-                        )}
+
+                            {protocolo.anexos && protocolo.anexos.length > 0 && (
+                                <div className="flex flex-col items-end gap-2 max-w-[50%]">
+                                    <Label className="text-muted-foreground text-xs uppercase font-bold mb-1">Anexos</Label>
+                                    <div className="flex flex-wrap justify-end gap-2">
+                                        {protocolo.anexos.map((anexo) => {
+                                            const isImage = anexo.tipo?.startsWith('image/');
+                                            const isPdf = anexo.tipo === 'application/pdf';
+                                            const isDoc = anexo.tipo?.includes('word') || anexo.tipo?.includes('document');
+                                            const baseUrl = (import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api").replace(/\/api$/, '');
+                                            const fileUrl = `${baseUrl}/storage/${anexo.caminho}`;
+                                            console.log('Anexo:', anexo);
+                                            console.log('Generated URL:', fileUrl);
+
+                                            return (
+                                                <a
+                                                    key={anexo.id}
+                                                    href={fileUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-card hover:bg-accent/50 transition-all group"
+                                                    title={anexo.nome_original || `Anexo ${anexo.id}`}
+                                                >
+                                                    {isImage ? (
+                                                        <ImageIcon className="h-4 w-4 text-purple-500" />
+                                                    ) : isPdf ? (
+                                                        <FileText className="h-4 w-4 text-red-500" />
+                                                    ) : isDoc ? (
+                                                        <FileText className="h-4 w-4 text-blue-500" />
+                                                    ) : (
+                                                        <File className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                    <span className="text-sm font-medium max-w-[150px] truncate">
+                                                        {anexo.nome_original || `Anexo ${anexo.id}`}
+                                                    </span>
+                                                    <Eye className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                </a>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
 
-                {/* Ações e Tramitação */}
                 <Card className="border-primary/20 shadow-md">
                     <CardHeader className="bg-muted/30 pb-4">
                         <CardTitle className="flex items-center gap-2">

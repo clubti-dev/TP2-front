@@ -34,6 +34,8 @@ export interface Protocolo {
   anexos?: {
     id: number;
     caminho: string;
+    nome_original?: string;
+    tipo?: string;
     created_at: string;
   }[];
   created_at?: string;
