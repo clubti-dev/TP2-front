@@ -475,7 +475,7 @@ const Solicitacoes = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Documentos Necessários</Label>
+                            <Label>Documentos Obrigatórios</Label>
                             <div className="border rounded-md p-4 space-y-2">
                                 {documentosNecessarios.length === 0 ? (
                                     <p className="text-sm text-muted-foreground">Nenhum documento cadastrado</p>

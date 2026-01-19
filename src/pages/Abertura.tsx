@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Upload, CheckCircle, Search, Loader2 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { publicService, CreatePublicProtocoloData } from "@/services/publicService";
 import { Secretaria } from "@/services/secretariaService";
 
@@ -37,7 +38,11 @@ const Abertura = () => {
   });
 
   const [solicitacoes, setSolicitacoes] = useState<any[]>([]);
-  const [files, setFiles] = useState<File[]>([]);
+  // Store specific files mapped by document ID
+  const [specificFiles, setSpecificFiles] = useState<Record<number, File>>({});
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [isAddressLocked, setIsAddressLocked] = useState(true);
+  const [isCepLoading, setIsCepLoading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -63,11 +68,42 @@ const Abertura = () => {
 
   const handleSelectChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: parseInt(value) }));
+    if (field === 'solicitacao_id') {
+      // Reset specific files when solicitation changes
+      setSpecificFiles({});
+    }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+  const handleCepBlur = async () => {
+    if (!formData.cep || formData.cep.length < 8) return;
+
+    setIsCepLoading(true);
+    try {
+      const address = await publicService.buscaCep(formData.cep);
+      if (address) {
+        setFormData(prev => ({
+          ...prev,
+          logradouro_nome: address.logradouro,
+          bairro: address.bairro,
+          cidade: address.localidade,
+          uf: address.uf
+        }));
+        toast({
+          title: "Endereço Encontrado",
+          description: "Os campos foram preenchidos automaticamente.",
+        });
+      } else {
+        toast({
+          title: "CEP não encontrado",
+          description: "Preencha o endereço manualmente.",
+          variant: "destructive"
+        });
+      }
+    } catch (e) {
+      // quiet error
+    } finally {
+      setIsCepLoading(false);
+      setIsAddressLocked(false);
     }
   };
 
@@ -120,18 +156,45 @@ const Abertura = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setAttemptedSubmit(true);
+
+    // Validate textual required fields
+    if (!formData.cpf_cnpj || !formData.nome || !formData.email || !formData.fone || !formData.solicitacao_id) {
+      toast({
+        title: "Campos Obrigatórios",
+        description: "Por favor, preencha todos os campos destacados em vermelho.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      // Validate required documents
+      const selectedSolicitacao = solicitacoes.find(s => s.id === formData.solicitacao_id);
+      if (selectedSolicitacao?.documentos?.length > 0) {
+        const missingDocs = selectedSolicitacao.documentos.filter((doc: any) => !specificFiles[doc.id]);
+        if (missingDocs.length > 0) {
+          toast({
+            title: "Documentos Pendentes",
+            description: `Por favor, anexe todos os documentos obrigatórios: ${missingDocs.map((d: any) => d.descricao).join(", ")}`,
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const data = new FormData();
       // Append all text fields
       Object.entries(formData).forEach(([key, value]) => {
         data.append(key, value.toString());
       });
 
-      // Append files
-      files.forEach((file) => {
-        data.append("anexos[]", file);
+      // Append specific files (anexos[DOC_ID])
+      Object.entries(specificFiles).forEach(([docId, file]) => {
+        data.append(`anexos[${docId}]`, file);
       });
 
       const result = await publicService.createProtocolo(data);
@@ -189,7 +252,7 @@ const Abertura = () => {
                     secretaria_id: 0,
                     descricao: "",
                   });
-                  setFiles([]);
+                  setSpecificFiles({});
                 }}>
                   Nova Solicitação
                 </Button>
@@ -235,123 +298,130 @@ const Abertura = () => {
       {/* Form */}
       <section className="py-10 md:py-14 -mt-6">
         <div className="container mx-auto px-4">
-          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto" noValidate>
             <div className="bg-card rounded-2xl p-6 md:p-8 card-shadow animate-slide-up">
               <h2 className="text-lg font-semibold mb-6 pb-4 border-b">
                 Dados do Solicitante
               </h2>
 
-              <div className="grid gap-5">
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="cpf_cnpj">CPF / CNPJ *</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="cpf_cnpj"
-                        placeholder="000.000.000-00"
-                        required
-                        value={formData.cpf_cnpj}
-                        onChange={handleInputChange}
-                      />
-                      <Button type="button" variant="outline" size="icon" onClick={handleSearchSolicitante} disabled={isSearching}>
-                        {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="nome">Nome Completo *</Label>
+              <div className="grid gap-3 sm:grid-cols-4">
+                <div className="space-y-1 sm:col-span-1">
+                  <Label htmlFor="cpf_cnpj">CPF / CNPJ <span className="text-destructive">*</span></Label>
+                  <div className="flex gap-2">
                     <Input
-                      id="nome"
-                      placeholder="Seu nome completo"
+                      id="cpf_cnpj"
+                      placeholder="Doc..."
                       required
-                      value={formData.nome}
+                      value={formData.cpf_cnpj}
                       onChange={handleInputChange}
+                      className={attemptedSubmit && !formData.cpf_cnpj ? "border-destructive focus-visible:ring-destructive" : ""}
                     />
+                    <Button type="button" variant="outline" size="icon" onClick={handleSearchSolicitante} disabled={isSearching}>
+                      {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                    </Button>
                   </div>
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">E-mail *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      required
-                      value={formData.email}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fone">Telefone *</Label>
-                    <Input
-                      id="fone"
-                      placeholder="(00) 00000-0000"
-                      required
-                      value={formData.fone}
-                      onChange={handleInputChange}
-                    />
-                  </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <Label htmlFor="nome">Nome Completo <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="nome"
+                    placeholder="Seu nome completo"
+                    required
+                    value={formData.nome}
+                    onChange={handleInputChange}
+                    className={attemptedSubmit && !formData.nome ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-3">
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="logradouro_nome">Endereço</Label>
-                    <Input
-                      id="logradouro_nome"
-                      placeholder="Rua, Avenida, etc"
-                      value={formData.logradouro_nome}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="numero">Número</Label>
-                    <Input
-                      id="numero"
-                      placeholder="123"
-                      value={formData.numero}
-                      onChange={handleInputChange}
-                    />
-                  </div>
+                <div className="space-y-1 sm:col-span-1">
+                  <Label htmlFor="fone">Telefone <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="fone"
+                    placeholder="(00) 00..."
+                    required
+                    value={formData.fone}
+                    onChange={handleInputChange}
+                    className={attemptedSubmit && !formData.fone ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="bairro">Bairro</Label>
-                    <Input
-                      id="bairro"
-                      placeholder="Bairro"
-                      value={formData.bairro}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cidade">Cidade</Label>
-                    <Input
-                      id="cidade"
-                      placeholder="Cidade"
-                      value={formData.cidade}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="uf">UF</Label>
-                    <Input
-                      id="uf"
-                      placeholder="UF"
-                      maxLength={2}
-                      value={formData.uf}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cep">CEP</Label>
+                <div className="space-y-1 sm:col-span-1">
+                  <Label htmlFor="cep">
+                    CEP
+                    {isCepLoading && <Loader2 className="inline h-3 w-3 animate-spin ml-2" />}
+                  </Label>
                   <Input
                     id="cep"
                     placeholder="00000-000"
                     value={formData.cep}
                     onChange={handleInputChange}
+                    onBlur={handleCepBlur}
+                    maxLength={9}
+                  />
+                </div>
+
+                <div className="space-y-1 sm:col-span-2">
+                  <Label htmlFor="logradouro_nome">Endereço</Label>
+                  <Input
+                    id="logradouro_nome"
+                    placeholder="Rua, Avenida, etc"
+                    value={formData.logradouro_nome}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="space-y-1 sm:col-span-1">
+                  <Label htmlFor="numero">Número</Label>
+                  <Input
+                    id="numero"
+                    placeholder="123"
+                    value={formData.numero}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="space-y-1 sm:col-span-2">
+                  <Label htmlFor="bairro">Bairro</Label>
+                  <Input
+                    id="bairro"
+                    placeholder="Bairro"
+                    value={formData.bairro}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="space-y-1 sm:col-span-1">
+                  <Label htmlFor="cidade">Cidade</Label>
+                  <Input
+                    id="cidade"
+                    placeholder="Cidade"
+                    value={formData.cidade}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="space-y-1 sm:col-span-1">
+                  <Label htmlFor="uf">UF</Label>
+                  <Input
+                    id="uf"
+                    placeholder="UF"
+                    maxLength={2}
+                    value={formData.uf}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="space-y-1 sm:col-span-4">
+                  <Label htmlFor="email">E-mail <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={attemptedSubmit && !formData.email ? "border-destructive focus-visible:ring-destructive" : ""}
                   />
                 </div>
               </div>
@@ -362,7 +432,7 @@ const Abertura = () => {
 
               <div className="grid gap-5">
                 <div className="space-y-2">
-                  <Label htmlFor="solicitacao_id">Tipo de Solicitação *</Label>
+                  <Label htmlFor="solicitacao_id">Tipo de Solicitação <span className="text-destructive">*</span></Label>
                   <Select required onValueChange={(value) => {
                     const selectedSolicitacaoId = parseInt(value);
                     const selectedSolicitacao = solicitacoes.find(s => s.id === selectedSolicitacaoId);
@@ -372,7 +442,7 @@ const Abertura = () => {
                       secretaria_id: selectedSolicitacao?.secretaria_id || 0
                     }));
                   }}>
-                    <SelectTrigger>
+                    <SelectTrigger className={attemptedSubmit && !formData.solicitacao_id ? "border-destructive focus:ring-destructive" : ""}>
                       <SelectValue placeholder="Selecione o tipo de solicitação" />
                     </SelectTrigger>
                     <SelectContent>
@@ -385,73 +455,75 @@ const Abertura = () => {
                   </Select>
                 </div>
 
-                {formData.solicitacao_id > 0 && (
-                  <div className="animate-fade-in">
-                    {(() => {
-                      const selected = solicitacoes.find(s => s.id === formData.solicitacao_id);
-                      if (selected?.documentos?.length > 0) {
-                        return (
-                          <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mt-2">
-                            <p className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-2">
-                              <FileText className="h-4 w-4" />
-                              Documentos Necessários
-                            </p>
-                            <ul className="grid sm:grid-cols-2 gap-2">
-                              {selected.documentos.map((doc: any) => (
-                                <li key={doc.id} className="text-sm text-blue-700 flex items-start gap-2">
-                                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                <div className="space-y-4">
+                  <Label>Documentos Obrigatórios</Label>
+
+                  {formData.solicitacao_id > 0 && solicitacoes.find(s => s.id === formData.solicitacao_id)?.documentos?.length > 0 ? (
+                    <div className="border rounded-xl overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Documento / Declaração</TableHead>
+                            <TableHead className="w-[100px]">Status</TableHead>
+                            <TableHead className="w-[150px] text-right">Ação</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {solicitacoes.find(s => s.id === formData.solicitacao_id)?.documentos.map((doc: any) => (
+                            <TableRow key={doc.id}>
+                              <TableCell className="font-medium py-2">
+                                <span className="flex items-center gap-2">
                                   {doc.descricao}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })()}
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="descricao">Descrição da Solicitação *</Label>
-                  <Textarea
-                    id="descricao"
-                    placeholder="Descreva detalhadamente sua solicitação..."
-                    rows={5}
-                    required
-                    value={formData.descricao}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="anexos">Anexar Documentos (opcional)</Label>
-                  <div className="border-2 border-dashed rounded-xl p-6 text-center hover:border-primary/50 transition-colors cursor-pointer relative">
-                    <Input
-                      type="file"
-                      id="anexos"
-                      multiple
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      onChange={handleFileChange}
-                      accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {files.length > 0
-                        ? `${files.length} arquivo(s) selecionado(s)`
-                        : "Arraste arquivos ou clique para selecionar"}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      PDF, JPG ou PNG até 10MB
-                    </p>
-                    {files.length > 0 && (
-                      <ul className="mt-2 text-xs text-left">
-                        {files.map((f, i) => (
-                          <li key={i} className="text-primary truncate">• {f.name}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                                  <span className="text-destructive text-xs">*</span>
+                                </span>
+                              </TableCell>
+                              <TableCell className="py-2">
+                                {specificFiles[doc.id] ? (
+                                  <span className="flex items-center text-primary text-xs font-medium">
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Anexado
+                                  </span>
+                                ) : (
+                                  <span className="text-destructive text-xs font-semibold">Obrigatório</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right py-2">
+                                <div className="relative inline-block">
+                                  <Input
+                                    type="file"
+                                    id={`doc-${doc.id}`}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    onChange={(e) => {
+                                      if (e.target.files && e.target.files[0]) {
+                                        const file = e.target.files[0];
+                                        setSpecificFiles(prev => ({
+                                          ...prev,
+                                          [doc.id]: file
+                                        }));
+                                      }
+                                    }}
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                  />
+                                  <Button
+                                    variant={specificFiles[doc.id] ? "outline" : "default"}
+                                    size="sm"
+                                    type="button"
+                                    className={`pointer-events-none h-8 ${specificFiles[doc.id] ? "border-primary text-primary hover:bg-primary/10" : ""}`}
+                                  >
+                                    {specificFiles[doc.id] ? <><CheckCircle className="mr-2 h-3 w-3" /> Alterar</> : <><Upload className="mr-2 h-3 w-3" /> Anexar</>}
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-xl text-center">
+                      Nenhum documento específico obrigatório para este tipo de solicitação.
+                    </div>
+                  )}
                 </div>
               </div>
 

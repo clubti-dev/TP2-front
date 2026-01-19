@@ -90,7 +90,7 @@ export function AppSidebar() {
                 { icon: Users, label: "Usuários", href: "/admin/usuarios", roles: ["Master", "Admin"] },
                 { icon: UserCircle, label: "Solicitantes", href: "/admin/solicitantes", roles: ["Master", "Admin"] },
                 { icon: FileQuestion, label: "Solicitações", href: "/admin/solicitacoes", roles: ["Master", "Admin"] },
-                { icon: FileText, label: "Documentos Necessários", href: "/admin/documentos-necessarios", roles: ["Master", "Admin"] },
+                { icon: FileText, label: "Documentos Obrigatórios", href: "/admin/documentos-necessarios", roles: ["Master", "Admin"] },
                 { icon: FileText, label: "Secretarias", href: "/admin/secretarias", roles: ["Master"] },
                 { icon: FolderPlus, label: "Setores", href: "/admin/setores", roles: ["Master", "Admin"] },
             ],

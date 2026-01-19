@@ -102,9 +102,31 @@ export const publicService = {
         }
     },
 
-    downloadComprovante(numero: string): void {
-        const url = `${API_BASE_URL}/public/protocolos/${numero}/comprovante`;
-        window.open(url, '_blank');
+    async downloadComprovante(protocolo: string) {
+        window.open(`${API_BASE_URL}/protocolos/public/${protocolo}/comprovante`, '_blank');
+    },
+
+    async buscaCep(cep: string): Promise<any> {
+        // Remove non-digits
+        const cleanCep = cep.replace(/\D/g, '');
+        if (cleanCep.length !== 8) {
+            return null;
+        }
+
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+            if (!response.ok) {
+                return null;
+            }
+            const data = await response.json();
+            if (data.erro) {
+                return null;
+            }
+            return data;
+        } catch (error) {
+            console.error("Erro ao buscar CEP:", error);
+            return null;
+        }
     },
 
     createProtocolo: async (data: FormData): Promise<any> => {
