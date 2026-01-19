@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { protocoloService, Movimentacao, Protocolo } from "@/services/protocoloService";
 import { statusService, Status } from "@/services/statusService";
-import { Loader2, Circle, CheckCircle2, Clock, XCircle, User, ArrowLeft, Calendar, Hash, Building2, MapPin, MessageSquare } from "lucide-react";
+import { Loader2, Circle, CheckCircle2, Clock, XCircle, User, ArrowLeft, Calendar, Hash, Building2, MapPin, MessageSquare, Download } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -82,6 +82,22 @@ const ProtocoloTimeline = () => {
         }
     };
 
+    const handleDownloadPdf = async () => {
+        if (!protocolo) return;
+        try {
+            setIsLoading(true);
+            const blob = await protocoloService.downloadTimelinePdf(protocolo.id);
+            const url = window.URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            // Cleanup after a delay to ensure it loads
+            setTimeout(() => window.URL.revokeObjectURL(url), 100);
+        } catch (error) {
+            console.error("Erro ao abrir PDF:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -106,15 +122,25 @@ const ProtocoloTimeline = () => {
                     <h1 className="text-xl font-bold">Dados do Protocolo</h1>
                     <p className="text-sm text-muted-foreground">Informações da solicitação</p>
                 </div>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="bg-accent/20 hover:bg-accent/40 border-accent/50 text-primary"
-                    onClick={() => navigate("/admin/protocolos")}
-                    title="Voltar para lista"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        className="gap-2"
+                        onClick={handleDownloadPdf}
+                    >
+                        <Download className="h-4 w-4" />
+                        Baixar PDF
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-accent/20 hover:bg-accent/40 border-accent/50 text-primary"
+                        onClick={() => navigate("/admin/protocolos")}
+                        title="Voltar para lista"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
 
             <div className="space-y-8">

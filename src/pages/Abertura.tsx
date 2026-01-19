@@ -193,6 +193,13 @@ const Abertura = () => {
                 }}>
                   Nova Solicitação
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => publicService.downloadComprovante(protocolo)}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Imprimir Comprovante
+                </Button>
                 <Button variant="outline" asChild>
                   <Link to="/consulta">Consultar Processo</Link>
                 </Button>

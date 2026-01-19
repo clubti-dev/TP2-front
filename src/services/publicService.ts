@@ -76,7 +76,7 @@ export const publicService = {
         return response.json();
     },
 
-    checkSolicitante: async (cpfCnpj: string): Promise<PublicSolicitante | null> => {
+    async checkSolicitante(cpf_cnpj: string): Promise<PublicSolicitante | null> {
         try {
             const response = await fetch(`${API_BASE_URL}/public/solicitantes/check`, {
                 method: "POST",
@@ -84,7 +84,7 @@ export const publicService = {
                     "Content-Type": "application/json",
                     "Accept": "application/json",
                 },
-                body: JSON.stringify({ cpf_cnpj: cpfCnpj }),
+                body: JSON.stringify({ cpf_cnpj: cpf_cnpj }), // key matches controller expectation
             });
 
             if (response.status === 404) {
@@ -100,6 +100,11 @@ export const publicService = {
             console.error("Erro ao verificar solicitante:", error);
             return null;
         }
+    },
+
+    downloadComprovante(numero: string): void {
+        const url = `${API_BASE_URL}/public/protocolos/${numero}/comprovante`;
+        window.open(url, '_blank');
     },
 
     createProtocolo: async (data: FormData): Promise<any> => {

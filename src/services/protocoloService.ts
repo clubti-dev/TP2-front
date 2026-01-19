@@ -195,4 +195,19 @@ export const protocoloService = {
       throw new Error(error.message || "Erro ao enviar anexo");
     }
   },
+
+  async downloadTimelinePdf(protocoloId: number): Promise<Blob> {
+    const response = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/timeline-pdf`, {
+      headers: {
+         "Accept": "application/pdf",
+        ...authService.getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao gerar PDF da timeline");
+    }
+
+    return response.blob();
+  },
 };
