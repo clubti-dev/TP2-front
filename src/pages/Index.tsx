@@ -40,7 +40,7 @@ const Index = () => {
               icon={Search}
               title="Consultar Processo"
               description="Acompanhe o andamento do seu processo usando o número do protocolo ou CPF."
-              color="secondary"
+              color="primary"
               delay={200}
             />
             <ActionCard
@@ -72,7 +72,7 @@ const Index = () => {
               </p>
             </div>
             <div className="text-center animate-slide-up" style={{ animationDelay: "200ms" }}>
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-secondary/10 text-secondary">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <Shield className="h-7 w-7" />
               </div>
               <h3 className="font-semibold mb-2">Segurança</h3>
