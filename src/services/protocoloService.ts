@@ -21,6 +21,10 @@ export interface Protocolo {
       descricao: string;
       sigla: string;
     };
+    documentos?: {
+      id: number;
+      descricao: string;
+    }[];
   };
   status: {
     id: number;
@@ -37,6 +41,7 @@ export interface Protocolo {
     nome_original?: string;
     tipo?: string;
     created_at: string;
+    documento_necessario_id?: number | null;
   }[];
   created_at?: string;
   updated_at?: string;
@@ -199,13 +204,28 @@ export const protocoloService = {
   async downloadTimelinePdf(protocoloId: number): Promise<Blob> {
     const response = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/timeline-pdf`, {
       headers: {
-         "Accept": "application/pdf",
+        "Accept": "application/pdf",
         ...authService.getAuthHeader(),
       },
     });
 
     if (!response.ok) {
       throw new Error("Erro ao gerar PDF da timeline");
+    }
+
+    return response.blob();
+  },
+
+  async downloadCompletoPdf(protocoloId: number): Promise<Blob> {
+    const response = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/pdf-completo`, {
+      headers: {
+        "Accept": "application/pdf",
+        ...authService.getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao gerar PDF completo");
     }
 
     return response.blob();

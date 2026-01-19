@@ -20,6 +20,14 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,7 +36,7 @@ import { secretariaService, Secretaria } from "@/services/secretariaService";
 import { setorService, Setor } from "@/services/setorService";
 import { statusService, Status } from "@/services/statusService";
 import { movimentacaoService } from "@/services/movimentacaoService";
-import { FileStack, Eye, Upload, X, ArrowLeft, Loader2, Save, Send, Hash, Calendar, User, Building2, MessageSquare, MapPin, FileText, Image as ImageIcon, File, History } from "lucide-react";
+import { FileStack, Eye, Upload, X, ArrowLeft, Loader2, Save, Send, Hash, Calendar, User, Building2, MessageSquare, MapPin, FileText, Image as ImageIcon, File, History, Printer, Download } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { idUtils } from "@/utils/idUtils";
@@ -51,6 +59,7 @@ const ProtocoloDetalhes = () => {
     const [selectedSecretariaTransfer, setSelectedSecretariaTransfer] = useState<string>("");
     const [selectedSetorTransfer, setSelectedSetorTransfer] = useState<string>("");
     const [activeTab, setActiveTab] = useState("responder");
+    const [infoTab, setInfoTab] = useState("dados");
     const [isSaving, setIsSaving] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState<string>("");
 
@@ -282,6 +291,28 @@ const ProtocoloDetalhes = () => {
                         variant="outline"
                         size="icon"
                         className="bg-accent/20 hover:bg-accent/40 border-accent/50 text-primary"
+                        onClick={async () => {
+                            if (!protocolo) return;
+                            try {
+                                const blob = await protocoloService.downloadCompletoPdf(protocolo.id);
+                                const url = window.URL.createObjectURL(blob);
+                                window.open(url, '_blank');
+                            } catch (error) {
+                                toast({
+                                    title: "Erro",
+                                    description: "Erro ao gerar PDF",
+                                    variant: "destructive",
+                                });
+                            }
+                        }}
+                        title="Imprimir Protocolo"
+                    >
+                        <Printer className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-accent/20 hover:bg-accent/40 border-accent/50 text-primary"
                         onClick={() => navigate(`/admin/protocolos/${idUtils.encode(protocolo?.id)}/timeline`)}
                         title="Ver Histórico"
                     >
@@ -304,121 +335,223 @@ const ProtocoloDetalhes = () => {
             <div className="space-y-8">
                 {/* Dados do Protocolo - Compacto e em Linha */}
                 <Card>
+                    <CardContent className="pt-6">
+                        <Tabs value={infoTab} onValueChange={setInfoTab} className="w-full">
+                            <TabsList className="grid w-full grid-cols-2 mb-6">
+                                <TabsTrigger value="dados">Dados do Protocolo</TabsTrigger>
+                                <TabsTrigger value="anexos">Anexos ({protocolo.anexos?.length || 0})</TabsTrigger>
+                            </TabsList>
 
-                    <CardContent className="space-y-6 pt-6">
-                        <div className="flex flex-wrap gap-6 items-start">
-                            <div className="flex items-center gap-3 min-w-[200px]">
-                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <Hash className="h-5 w-5 text-primary" />
-                                </div>
-                                <div>
-                                    <Label className="text-muted-foreground text-xs uppercase font-bold">Número</Label>
-                                    <p className="text-base font-bold text-foreground">{protocolo.numero}</p>
-                                </div>
-                            </div>
+                            <TabsContent value="dados" className="space-y-6">
+                                <div className="flex flex-wrap gap-6 items-start">
+                                    <div className="flex items-center gap-3 min-w-[200px]">
+                                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                            <Hash className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground text-xs uppercase font-bold">Número</Label>
+                                            <p className="text-base font-bold text-foreground">{protocolo.numero}</p>
+                                        </div>
+                                    </div>
 
-                            <div className="flex items-center gap-3 min-w-[200px]">
-                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <Calendar className="h-5 w-5 text-primary" />
-                                </div>
-                                <div>
-                                    <Label className="text-muted-foreground text-xs uppercase font-bold">Data de Abertura</Label>
-                                    <p className="text-base font-bold text-foreground">{formatDate(protocolo.data_solicitacao)}</p>
-                                </div>
-                            </div>
+                                    <div className="flex items-center gap-3 min-w-[200px]">
+                                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                            <Calendar className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground text-xs uppercase font-bold">Data de Abertura</Label>
+                                            <p className="text-base font-bold text-foreground">{formatDate(protocolo.data_solicitacao)}</p>
+                                        </div>
+                                    </div>
 
-                            <div className="flex items-center gap-3 min-w-[250px] flex-1">
-                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <User className="h-5 w-5 text-primary" />
-                                </div>
-                                <div className="min-w-0">
-                                    <Label className="text-muted-foreground text-xs uppercase font-bold">Requerente</Label>
-                                    <p className="text-base font-bold text-foreground truncate" title={protocolo.solicitante?.nome}>
-                                        {protocolo.solicitante?.nome || "-"}
-                                    </p>
-                                </div>
-                            </div>
+                                    <div className="flex items-center gap-3 min-w-[250px] flex-1">
+                                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                            <User className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <Label className="text-muted-foreground text-xs uppercase font-bold">Requerente</Label>
+                                            <p className="text-base font-bold text-foreground truncate" title={protocolo.solicitante?.nome}>
+                                                {protocolo.solicitante?.nome || "-"}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                            <div className="flex items-center gap-3 min-w-[250px] flex-1">
-                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <Building2 className="h-5 w-5 text-primary" />
-                                </div>
-                                <div className="min-w-0">
-                                    <Label className="text-muted-foreground text-xs uppercase font-bold">Secretaria Atual</Label>
-                                    <p className="text-base font-bold text-foreground truncate" title={protocolo.solicitacao?.secretaria?.descricao}>
-                                        {protocolo.solicitacao?.secretaria?.descricao || "-"}
-                                    </p>
-                                </div>
-                            </div>
+                                    <div className="flex items-center gap-3 min-w-[250px] flex-1">
+                                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                            <Building2 className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <Label className="text-muted-foreground text-xs uppercase font-bold">Secretaria Atual</Label>
+                                            <p className="text-base font-bold text-foreground truncate" title={protocolo.solicitacao?.secretaria?.descricao}>
+                                                {protocolo.solicitacao?.secretaria?.descricao || "-"}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                            <div className="flex items-center gap-3 min-w-[250px] flex-1">
-                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <MapPin className="h-5 w-5 text-primary" />
-                                </div>
-                                <div className="min-w-0">
-                                    <Label className="text-muted-foreground text-xs uppercase font-bold">Setor Atual</Label>
-                                    <p className="text-base font-bold text-foreground truncate" title={protocolo.setor?.descricao}>
-                                        {protocolo.setor?.descricao || "-"}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start justify-between gap-4 pt-2 border-t">
-                            <div className="flex items-start gap-3 flex-1">
-                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                                    <MessageSquare className="h-5 w-5 text-primary" />
-                                </div>
-                                <div>
-                                    <Label className="text-muted-foreground text-xs uppercase font-bold">Assunto</Label>
-                                    <p className="text-base font-bold text-foreground mt-1">
-                                        {protocolo.solicitacao?.descricao || "-"}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {protocolo.anexos && protocolo.anexos.length > 0 && (
-                                <div className="flex flex-col items-end gap-2 max-w-[50%]">
-                                    <Label className="text-muted-foreground text-xs uppercase font-bold mb-1">Anexos</Label>
-                                    <div className="flex flex-wrap justify-end gap-2">
-                                        {protocolo.anexos.map((anexo) => {
-                                            const isImage = anexo.tipo?.startsWith('image/');
-                                            const isPdf = anexo.tipo === 'application/pdf';
-                                            const isDoc = anexo.tipo?.includes('word') || anexo.tipo?.includes('document');
-                                            const baseUrl = (import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api").replace(/\/api$/, '');
-                                            const fileUrl = `${baseUrl}/storage/${anexo.caminho}`;
-                                            console.log('Anexo:', anexo);
-                                            console.log('Generated URL:', fileUrl);
-
-                                            return (
-                                                <a
-                                                    key={anexo.id}
-                                                    href={fileUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-card hover:bg-accent/50 transition-all group"
-                                                    title={anexo.nome_original || `Anexo ${anexo.id}`}
-                                                >
-                                                    {isImage ? (
-                                                        <ImageIcon className="h-4 w-4 text-purple-500" />
-                                                    ) : isPdf ? (
-                                                        <FileText className="h-4 w-4 text-red-500" />
-                                                    ) : isDoc ? (
-                                                        <FileText className="h-4 w-4 text-blue-500" />
-                                                    ) : (
-                                                        <File className="h-4 w-4 text-muted-foreground" />
-                                                    )}
-                                                    <span className="text-sm font-medium max-w-[150px] truncate">
-                                                        {anexo.nome_original || `Anexo ${anexo.id}`}
-                                                    </span>
-                                                    <Eye className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                                                </a>
-                                            );
-                                        })}
+                                    <div className="flex items-center gap-3 min-w-[250px] flex-1">
+                                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                            <MapPin className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <Label className="text-muted-foreground text-xs uppercase font-bold">Setor Atual</Label>
+                                            <p className="text-base font-bold text-foreground truncate" title={protocolo.setor?.descricao}>
+                                                {protocolo.setor?.descricao || "-"}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            )}
-                        </div>
+
+                                <div className="flex items-start gap-4 pt-2 border-t">
+                                    <div className="flex items-start gap-3 flex-1">
+                                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+                                            <MessageSquare className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <Label className="text-muted-foreground text-xs uppercase font-bold">Assunto</Label>
+                                            <p className="text-base font-bold text-foreground mt-1">
+                                                {protocolo.solicitacao?.descricao || "-"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="anexos">
+                                <div className="space-y-6">
+                                    <div className="rounded-md border">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="w-[40%]">Documento</TableHead>
+                                                    <TableHead>Status</TableHead>
+                                                    <TableHead>Arquivo</TableHead>
+                                                    <TableHead>Data</TableHead>
+                                                    <TableHead className="text-right">Ações</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {/* 1. List Required Documents */}
+                                                {protocolo.solicitacao?.documentos?.map((doc) => {
+                                                    // Find attachment linked to this document
+                                                    const anexo = protocolo.anexos?.find(a => a.documento_necessario_id === doc.id);
+                                                    const isImage = anexo?.tipo?.startsWith('image/');
+                                                    const isPdf = anexo?.tipo === 'application/pdf';
+                                                    const isDoc = anexo?.tipo?.includes('word') || anexo?.tipo?.includes('document');
+                                                    const baseUrl = (import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api").replace(/\/api$/, '');
+                                                    const fileUrl = anexo ? `${baseUrl}/storage/${anexo.caminho}` : null;
+
+                                                    return (
+                                                        <TableRow key={`req-${doc.id}`}>
+                                                            <TableCell className="font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <FileText className="h-4 w-4 text-blue-500" />
+                                                                    {doc.descricao}
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {anexo ? (
+                                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                        Entregue
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                                        Pendente
+                                                                    </span>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {anexo ? (
+                                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                                        {isImage ? <ImageIcon className="h-4 w-4" /> : <File className="h-4 w-4" />}
+                                                                        {anexo.nome_original}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-muted-foreground text-sm">-</span>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {anexo ? formatDate(anexo.created_at) : '-'}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {anexo && fileUrl && (
+                                                                    <div className="flex justify-end gap-2">
+                                                                        <Button variant="ghost" size="icon" asChild title="Visualizar">
+                                                                            <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                                                                                <Eye className="h-4 w-4" />
+                                                                            </a>
+                                                                        </Button>
+                                                                        <Button variant="ghost" size="icon" asChild title="Baixar">
+                                                                            <a href={fileUrl} download>
+                                                                                <Download className="h-4 w-4" />
+                                                                            </a>
+                                                                        </Button>
+                                                                    </div>
+                                                                )}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+
+                                                {/* 2. List Extra Attachments (not linked to required docs) */}
+                                                {protocolo.anexos?.filter(a => !a.documento_necessario_id).map((anexo) => {
+                                                    const isImage = anexo.tipo?.startsWith('image/');
+                                                    const isPdf = anexo.tipo === 'application/pdf';
+                                                    const isDoc = anexo.tipo?.includes('word') || anexo.tipo?.includes('document');
+                                                    const baseUrl = (import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api").replace(/\/api$/, '');
+                                                    const fileUrl = `${baseUrl}/storage/${anexo.caminho}`;
+
+                                                    return (
+                                                        <TableRow key={`extra-${anexo.id}`}>
+                                                            <TableCell className="font-medium">
+                                                                <div className="flex items-center gap-2">
+                                                                    <File className="h-4 w-4 text-muted-foreground" />
+                                                                    Outros Documentos
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                                    Extra
+                                                                </span>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                                    {isImage ? <ImageIcon className="h-4 w-4" /> : <File className="h-4 w-4" />}
+                                                                    {anexo.nome_original}
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>{formatDate(anexo.created_at)}</TableCell>
+                                                            <TableCell className="text-right">
+                                                                <div className="flex justify-end gap-2">
+                                                                    <Button variant="ghost" size="icon" asChild title="Visualizar">
+                                                                        <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                                                                            <Eye className="h-4 w-4" />
+                                                                        </a>
+                                                                    </Button>
+                                                                    <Button variant="ghost" size="icon" asChild title="Baixar">
+                                                                        <a href={fileUrl} download>
+                                                                            <Download className="h-4 w-4" />
+                                                                        </a>
+                                                                    </Button>
+                                                                </div>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+
+                                                {/* Empty State */}
+                                                {(!protocolo.solicitacao?.documentos?.length && !protocolo.anexos?.length) && (
+                                                    <TableRow>
+                                                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                                                            Nenhum documento necessário ou anexo encontrado.
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
+                            </TabsContent>
+                        </Tabs>
                     </CardContent>
                 </Card>
 
