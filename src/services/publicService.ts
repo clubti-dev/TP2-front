@@ -103,7 +103,7 @@ export const publicService = {
     },
 
     async downloadComprovante(protocolo: string) {
-        window.open(`${API_BASE_URL}/protocolos/public/${protocolo}/comprovante`, '_blank');
+        window.open(`${API_BASE_URL}/public/protocolos/${protocolo}/comprovante`, '_blank');
     },
 
     async buscaCep(cep: string): Promise<any> {
@@ -132,6 +132,9 @@ export const publicService = {
     createProtocolo: async (data: FormData): Promise<any> => {
         const response = await fetch(`${API_BASE_URL}/public/protocolos`, {
             method: "POST",
+            headers: {
+                "Accept": "application/json",
+            },
             body: data,
         });
 

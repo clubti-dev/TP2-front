@@ -159,7 +159,7 @@ const Abertura = () => {
     setAttemptedSubmit(true);
 
     // Validate textual required fields
-    if (!formData.cpf_cnpj || !formData.nome || !formData.email || !formData.fone || !formData.solicitacao_id) {
+    if (!formData.cpf_cnpj || !formData.nome || !formData.email || !formData.fone || !formData.solicitacao_id || !formData.descricao) {
       toast({
         title: "Campos Obrigatórios",
         description: "Por favor, preencha todos os campos destacados em vermelho.",
@@ -453,6 +453,19 @@ const Abertura = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="descricao">Descrição da Solicitação <span className="text-destructive">*</span></Label>
+                  <Textarea
+                    id="descricao"
+                    placeholder="Descreva detalhadamente sua solicitação..."
+                    required
+                    value={formData.descricao}
+                    onChange={handleInputChange}
+                    className={attemptedSubmit && !formData.descricao ? "border-destructive focus-visible:ring-destructive" : ""}
+                    rows={4}
+                  />
                 </div>
 
                 <div className="space-y-4">
