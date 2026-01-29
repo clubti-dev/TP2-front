@@ -76,7 +76,7 @@ const Dashboard = () => {
     })) || [];
 
 
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#3B82F6', '#10B981'];
 
     const container = {
         hidden: { opacity: 0 },
@@ -100,7 +100,7 @@ const Dashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col gap-2"
             >
-                <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent w-fit">
+                <h1 className="text-6xl font-bold tracking-tighter bg-gradient-to-r from-primary to-teal-500 bg-clip-text text-transparent w-fit mb-2">
                     Dashboard
                 </h1>
                 <p className="text-muted-foreground text-lg">
@@ -116,64 +116,68 @@ const Dashboard = () => {
             >
                 {/* Aberto */}
                 <motion.div variants={item}>
-                    <Card className="border-l-4 border-l-blue-500 shadow-lg hover:shadow-xl transition-all">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Protocolos Abertos</CardTitle>
-                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                <FileText className="h-4 w-4 text-blue-600" />
+                    <Card className="relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                            <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-blue-600 transition-colors">Protocolos Abertos</CardTitle>
+                            <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                                <FileText className="h-5 w-5 text-blue-600 group-hover:text-white transition-colors" />
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{stats?.aberto || 0}</div>
-                            <p className="text-xs text-muted-foreground mt-1">Aguardando análise</p>
+                        <CardContent className="relative z-10">
+                            <div className="text-4xl font-bold text-foreground tracking-tight">{stats?.aberto || 0}</div>
+                            <p className="text-xs text-muted-foreground mt-2 font-medium">Aguardando análise</p>
                         </CardContent>
                     </Card>
                 </motion.div>
 
                 {/* Em Andamento */}
                 <motion.div variants={item}>
-                    <Card className="border-l-4 border-l-yellow-500 shadow-lg hover:shadow-xl transition-all">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Em Andamento</CardTitle>
-                            <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                                <Clock className="h-4 w-4 text-yellow-600" />
+                    <Card className="relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                            <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-yellow-600 transition-colors">Em Andamento</CardTitle>
+                            <div className="h-10 w-10 rounded-xl bg-yellow-500/10 flex items-center justify-center group-hover:bg-yellow-500 group-hover:text-white transition-all duration-300">
+                                <Clock className="h-5 w-5 text-yellow-600 group-hover:text-white transition-colors" />
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{stats?.em_andamento || 0}</div>
-                            <p className="text-xs text-muted-foreground mt-1">Sendo processados</p>
+                        <CardContent className="relative z-10">
+                            <div className="text-4xl font-bold text-foreground tracking-tight">{stats?.em_andamento || 0}</div>
+                            <p className="text-xs text-muted-foreground mt-2 font-medium">Sendo processados</p>
                         </CardContent>
                     </Card>
                 </motion.div>
 
                 {/* Transferidos */}
                 <motion.div variants={item}>
-                    <Card className="border-l-4 border-l-orange-500 shadow-lg hover:shadow-xl transition-all">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Transferências</CardTitle>
-                            <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
-                                <ArrowRightLeft className="h-4 w-4 text-orange-600" />
+                    <Card className="relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                            <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-orange-600 transition-colors">Transferências</CardTitle>
+                            <div className="h-10 w-10 rounded-xl bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
+                                <ArrowRightLeft className="h-5 w-5 text-orange-600 group-hover:text-white transition-colors" />
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{stats?.transferidos || 0}</div>
-                            <p className="text-xs text-muted-foreground mt-1">Movimentações entre setores</p>
+                        <CardContent className="relative z-10">
+                            <div className="text-4xl font-bold text-foreground tracking-tight">{stats?.transferidos || 0}</div>
+                            <p className="text-xs text-muted-foreground mt-2 font-medium">Movimentações entre setores</p>
                         </CardContent>
                     </Card>
                 </motion.div>
 
                 {/* Concluído */}
                 <motion.div variants={item}>
-                    <Card className="border-l-4 border-l-green-500 shadow-lg hover:shadow-xl transition-all">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Finalizados</CardTitle>
-                            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
+                    <Card className="relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                            <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-green-600 transition-colors">Finalizados</CardTitle>
+                            <div className="h-10 w-10 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:bg-green-500 group-hover:text-white transition-all duration-300">
+                                <CheckCircle className="h-5 w-5 text-green-600 group-hover:text-white transition-colors" />
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{stats?.concluido || 0}</div>
-                            <p className="text-xs text-muted-foreground mt-1">Processos encerrados</p>
+                        <CardContent className="relative z-10">
+                            <div className="text-4xl font-bold text-foreground tracking-tight">{stats?.concluido || 0}</div>
+                            <p className="text-xs text-muted-foreground mt-2 font-medium">Processos encerrados</p>
                         </CardContent>
                     </Card>
                 </motion.div>
@@ -188,14 +192,14 @@ const Dashboard = () => {
                 {/* Chart: Setores por Secretaria */}
                 <motion.div variants={item} className="md:col-span-4">
                     <Card className="shadow-lg h-full">
-                        <CardHeader>
+                        <CardHeader className="p-4 pb-2">
                             <div className="flex items-center gap-2">
                                 <Building2 className="h-5 w-5 text-primary" />
                                 <CardTitle>Setores por Secretaria</CardTitle>
                             </div>
                             <CardDescription>Quantidade de setores cadastrados em cada secretaria</CardDescription>
                         </CardHeader>
-                        <CardContent className="h-[350px]">
+                        <CardContent className="h-[450px] p-4 pt-0">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={sectoresData}>
                                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -240,8 +244,8 @@ const Dashboard = () => {
 
                             <div className="flex items-center justify-between p-4 bg-accent/20 rounded-xl">
                                 <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                                        <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                                    <div className="h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+                                        <Users className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Total de Usuários</p>
@@ -263,14 +267,14 @@ const Dashboard = () => {
                 animate={{ opacity: 1, y: 0, transition: { delay: 0.5 } }}
             >
                 <Card className="shadow-lg">
-                    <CardHeader>
+                    <CardHeader className="p-4 pb-2">
                         <div className="flex items-center gap-2">
                             <Users className="h-5 w-5 text-primary" />
                             <CardTitle>Usuários por Secretaria</CardTitle>
                         </div>
                         <CardDescription>Distribuição da equipe entre as secretarias</CardDescription>
                     </CardHeader>
-                    <CardContent className="h-[300px]">
+                    <CardContent className="h-[400px] p-4 pt-0">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={usersData} layout="vertical" margin={{ left: 50 }}>
                                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} horizontal={false} />

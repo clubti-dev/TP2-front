@@ -132,123 +132,125 @@ const Perfil = () => {
 
     return (
 
-        <div className="container mx-auto py-6">
-            <h1 className="text-3xl font-bold mb-6">Meu Perfil</h1>
+        <div className="w-full">
+            <div className="container mx-auto px-4 py-6 max-w-[1600px]">
+                <h1 className="text-3xl font-bold mb-6">Meu Perfil</h1>
 
-            <Tabs defaultValue="dados" className="w-full max-w-3xl">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
-                    <TabsTrigger value="senha">Alterar Senha</TabsTrigger>
-                </TabsList>
+                <Tabs defaultValue="dados" className="w-full max-w-3xl">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
+                        <TabsTrigger value="senha">Alterar Senha</TabsTrigger>
+                    </TabsList>
 
-                <TabsContent value="dados">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Dados Pessoais</CardTitle>
-                            <CardDescription>
-                                Atualize suas informações de perfil e foto.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={formProfile.handleSubmit(onProfileSubmit)} className="space-y-6">
+                    <TabsContent value="dados">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Dados Pessoais</CardTitle>
+                                <CardDescription>
+                                    Atualize suas informações de perfil e foto.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={formProfile.handleSubmit(onProfileSubmit)} className="space-y-6">
 
-                                <div className="flex flex-col items-center gap-4 sm:flex-row">
-                                    <Avatar className="h-24 w-24">
-                                        <AvatarImage src={previewImage || ""} />
-                                        <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <Label htmlFor="avatar" className="cursor-pointer">
-                                            <div className="flex items-center gap-2 rounded-md border p-2 hover:bg-accent w-fit">
-                                                <Upload className="h-4 w-4" />
-                                                <span>Alterar Foto</span>
-                                            </div>
-                                            <Input
-                                                id="avatar"
-                                                type="file"
-                                                className="hidden"
-                                                accept="image/*"
-                                                {...formProfile.register("avatar")}
-                                                onChange={(e) => {
-                                                    formProfile.register("avatar").onChange(e);
-                                                    handleImageChange(e);
-                                                }}
-                                            />
-                                        </Label>
-                                        <p className="text-xs text-muted-foreground mt-2">
-                                            JPG, PNG ou GIF. Máximo 2MB.
-                                        </p>
+                                    <div className="flex flex-col items-center gap-4 sm:flex-row">
+                                        <Avatar className="h-24 w-24">
+                                            <AvatarImage src={previewImage || ""} />
+                                            <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                            <Label htmlFor="avatar" className="cursor-pointer">
+                                                <div className="flex items-center gap-2 rounded-md border p-2 hover:bg-accent w-fit">
+                                                    <Upload className="h-4 w-4" />
+                                                    <span>Alterar Foto</span>
+                                                </div>
+                                                <Input
+                                                    id="avatar"
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="image/*"
+                                                    {...formProfile.register("avatar")}
+                                                    onChange={(e) => {
+                                                        formProfile.register("avatar").onChange(e);
+                                                        handleImageChange(e);
+                                                    }}
+                                                />
+                                            </Label>
+                                            <p className="text-xs text-muted-foreground mt-2">
+                                                JPG, PNG ou GIF. Máximo 2MB.
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Nome Completo</Label>
-                                    <Input id="name" {...formProfile.register("name")} />
-                                    {formProfile.formState.errors.name && (
-                                        <p className="text-sm text-destructive">{formProfile.formState.errors.name.message}</p>
-                                    )}
-                                </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name">Nome Completo</Label>
+                                        <Input id="name" {...formProfile.register("name")} />
+                                        {formProfile.formState.errors.name && (
+                                            <p className="text-sm text-destructive">{formProfile.formState.errors.name.message}</p>
+                                        )}
+                                    </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">E-mail</Label>
-                                    <Input id="email" type="email" {...formProfile.register("email")} />
-                                    {formProfile.formState.errors.email && (
-                                        <p className="text-sm text-destructive">{formProfile.formState.errors.email.message}</p>
-                                    )}
-                                </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email">E-mail</Label>
+                                        <Input id="email" type="email" {...formProfile.register("email")} />
+                                        {formProfile.formState.errors.email && (
+                                            <p className="text-sm text-destructive">{formProfile.formState.errors.email.message}</p>
+                                        )}
+                                    </div>
 
-                                <Button type="submit" disabled={isSubmitting}>
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Salvar Alterações
-                                </Button>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                                    <Button type="submit" disabled={isSubmitting}>
+                                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Salvar Alterações
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
-                <TabsContent value="senha">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Alterar Senha</CardTitle>
-                            <CardDescription>
-                                Digite sua senha atual e a nova senha para atualizar.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={formPassword.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="current_password">Senha Atual</Label>
-                                    <Input id="current_password" type="password" {...formPassword.register("current_password")} />
-                                    {formPassword.formState.errors.current_password && (
-                                        <p className="text-sm text-destructive">{formPassword.formState.errors.current_password.message}</p>
-                                    )}
-                                </div>
+                    <TabsContent value="senha">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Alterar Senha</CardTitle>
+                                <CardDescription>
+                                    Digite sua senha atual e a nova senha para atualizar.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={formPassword.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="current_password">Senha Atual</Label>
+                                        <Input id="current_password" type="password" {...formPassword.register("current_password")} />
+                                        {formPassword.formState.errors.current_password && (
+                                            <p className="text-sm text-destructive">{formPassword.formState.errors.current_password.message}</p>
+                                        )}
+                                    </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="password">Nova Senha</Label>
-                                    <Input id="password" type="password" {...formPassword.register("password")} />
-                                    {formPassword.formState.errors.password && (
-                                        <p className="text-sm text-destructive">{formPassword.formState.errors.password.message}</p>
-                                    )}
-                                </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Nova Senha</Label>
+                                        <Input id="password" type="password" {...formPassword.register("password")} />
+                                        {formPassword.formState.errors.password && (
+                                            <p className="text-sm text-destructive">{formPassword.formState.errors.password.message}</p>
+                                        )}
+                                    </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="password_confirmation">Confirmar Nova Senha</Label>
-                                    <Input id="password_confirmation" type="password" {...formPassword.register("password_confirmation")} />
-                                    {formPassword.formState.errors.password_confirmation && (
-                                        <p className="text-sm text-destructive">{formPassword.formState.errors.password_confirmation.message}</p>
-                                    )}
-                                </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password_confirmation">Confirmar Nova Senha</Label>
+                                        <Input id="password_confirmation" type="password" {...formPassword.register("password_confirmation")} />
+                                        {formPassword.formState.errors.password_confirmation && (
+                                            <p className="text-sm text-destructive">{formPassword.formState.errors.password_confirmation.message}</p>
+                                        )}
+                                    </div>
 
-                                <Button type="submit" disabled={isSubmitting}>
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Alterar Senha
-                                </Button>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+                                    <Button type="submit" disabled={isSubmitting}>
+                                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Alterar Senha
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            </div>
         </div>
     );
 };

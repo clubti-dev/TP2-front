@@ -94,7 +94,7 @@ const Consulta = () => {
       {/* Search Form */}
       <section className="py-10 md:py-14 -mt-6">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-[1600px] mx-auto">
             <div className="bg-card rounded-2xl p-6 md:p-8 card-shadow animate-slide-up">
               <Tabs defaultValue="protocolo">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -155,7 +155,7 @@ const Consulta = () => {
 
             {/* Result */}
             {resultado && (
-              <div className="mt-6 bg-card rounded-2xl p-6 md:p-8 card-shadow animate-scale-in">
+              <div className="mt-6 bg-card rounded-2xl p-4 md:p-6 card-shadow animate-scale-in">
                 <div className="flex flex-wrap items-start justify-between gap-4 mb-6 pb-6 border-b">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Protocolo</p>

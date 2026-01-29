@@ -116,8 +116,8 @@ const ProtocoloTimeline = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-[1600px]">
-            <div className="mb-6 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-6 max-w-[1600px]">
+            <div className="mb-4 flex justify-between items-center">
                 <div>
                     <h1 className="text-xl font-bold">Dados do Protocolo</h1>
                     <p className="text-sm text-muted-foreground">Informações da solicitação</p>

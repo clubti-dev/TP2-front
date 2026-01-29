@@ -182,9 +182,7 @@ export function AppSidebar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter className="border-t p-4">
-                {/* User info moved to header */}
-            </SidebarFooter>
+            {/* Footer removed to allow full-width system footer overlay */}
         </Sidebar>
     );
 }

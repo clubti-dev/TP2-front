@@ -213,9 +213,9 @@ const Solicitantes = () => {
 
     return (
 
-        <div className="p-8">
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex justify-between items-center">
+        <div className="w-full">
+            <div className="container mx-auto px-4 py-6 max-w-[1600px]">
+                <div className="flex justify-between items-center mb-6">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Solicitantes</h1>
                         <p className="text-gray-500">Gerencie o cadastro de solicitantes</p>
@@ -285,7 +285,7 @@ const Solicitantes = () => {
                             )}
                         </TableBody>
                     </Table>
-                </div >
+                </div>
 
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                     <DialogContent className="max-w-3xl max-h-[90vh] p-0 overflow-hidden flex flex-col">

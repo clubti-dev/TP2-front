@@ -1,6 +1,8 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Outlet, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import AdminFooter from "./AdminFooter";
 import { Separator } from "@/components/ui/separator";
 import {
     Breadcrumb,
@@ -22,17 +24,21 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 
 export default function MainLayout() {
     const location = useLocation();
+    // ... (existing code omitted for brevity in call, but will be preserved by replace_file_content logic if I target correctly)
+    // Wait, replace_file_content needs exact target. I should do imports separately.
+
+
     const pathSegments = location.pathname.split("/").filter((segment) => segment);
     const { user, logout } = useAuth();
 
     return (
         <SidebarProvider>
             <AppSidebar />
-            <main className="flex-1 flex flex-col min-h-screen overflow-hidden bg-background">
+            <main className="flex-1 flex flex-col h-screen overflow-hidden bg-background">
                 <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
                     <div className="flex items-center gap-2">
                         <SidebarTrigger className="-ml-1" />
@@ -109,10 +115,11 @@ export default function MainLayout() {
                         </DropdownMenu>
                     </div>
                 </header>
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-6 pb-12">
                     <Outlet />
                 </div>
             </main>
+            <AdminFooter />
         </SidebarProvider>
     );
 }

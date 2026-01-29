@@ -189,10 +189,10 @@ const Protocolos = () => {
   }
 
   return (
-    <div className="p-8">
-      <div className="container mx-auto px-4 py-8">
+    <div className="w-full">
+      <div className="container mx-auto px-4 py-6 max-w-[1600px]">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
               <FileStack className="h-6 w-6 text-primary" />
