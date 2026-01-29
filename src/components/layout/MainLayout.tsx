@@ -3,6 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { Outlet, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import AdminFooter from "./AdminFooter";
+import { SupportDialog } from "./SupportDialog";
 import { Separator } from "@/components/ui/separator";
 import {
     Breadcrumb,
@@ -74,6 +75,7 @@ export default function MainLayout() {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <SupportDialog />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-10 w-full gap-2 px-2 hover:bg-accent hover:text-accent-foreground">
