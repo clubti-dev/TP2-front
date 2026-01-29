@@ -1,8 +1,4 @@
-import { authService } from "./authService";
-import { Secretaria } from "./secretariaService";
-import { Assunto } from "./assuntoService";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://api-tp.clubti.com.br/api";
+import { api } from "./api";
 
 export interface Protocolo {
   id: number;
@@ -48,7 +44,6 @@ export interface Protocolo {
 }
 
 export interface ProtocoloInput {
-  // Keeping this for now, but admin creation might need refactor
   numero?: string;
   data_solicitacao: string;
   solicitante_id: number;
@@ -57,9 +52,6 @@ export interface ProtocoloInput {
   setor_id?: number;
 }
 
-// Helper to map backend status to frontend colors/labels if needed, 
-// but backend now returns status object with description.
-// We can keep these for fallback or remove if fully dynamic.
 export const statusColors: Record<string, string> = {
   "Aberto": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
   "Em Análise": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
@@ -71,7 +63,7 @@ export interface Movimentacao {
   id: number;
   protocolo_id: number;
   usuario_id: number;
-  status_anterior: string | null; // Backend seems to store string or object?
+  status_anterior: string | null;
   status_novo: string;
   observacao: string;
   created_at: string;
@@ -85,149 +77,45 @@ export interface Movimentacao {
 
 export const protocoloService = {
   async getAll(): Promise<Protocolo[]> {
-    const response = await fetch(`${API_BASE_URL}/protocolos`, {
-      headers: {
-        "Accept": "application/json",
-        ...authService.getAuthHeader(),
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Erro ao carregar protocolos");
-    }
-
-    return response.json();
+    return api.get<Protocolo[]>("/protocolos");
   },
 
   async getById(id: number): Promise<Protocolo> {
-    const response = await fetch(`${API_BASE_URL}/protocolos/${id}`, {
-      headers: {
-        "Accept": "application/json",
-        ...authService.getAuthHeader(),
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Protocolo não encontrado");
-    }
-
-    return response.json();
+    return api.get<Protocolo>(`/protocolos/${id}`);
   },
 
   async getMovimentacoes(protocoloId: number): Promise<Movimentacao[]> {
-    const response = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/movimentacoes`, {
-      headers: {
-        "Accept": "application/json",
-        ...authService.getAuthHeader(),
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Erro ao carregar movimentações");
-    }
-
-    return response.json();
+    return api.get<Movimentacao[]>(`/protocolos/${protocoloId}/movimentacoes`);
   },
 
   async create(data: ProtocoloInput): Promise<Protocolo> {
-    const response = await fetch(`${API_BASE_URL}/protocolos`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        ...authService.getAuthHeader(),
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Erro ao criar protocolo" }));
-      throw new Error(error.message || "Erro ao criar protocolo");
-    }
-
-    return response.json();
+    return api.post<Protocolo>("/protocolos", data);
   },
 
   async update(id: number, data: ProtocoloInput): Promise<Protocolo> {
-    const response = await fetch(`${API_BASE_URL}/protocolos/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        ...authService.getAuthHeader(),
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Erro ao atualizar protocolo" }));
-      throw new Error(error.message || "Erro ao atualizar protocolo");
-    }
-
-    return response.json();
+    return api.put<Protocolo>(`/protocolos/${id}`, data);
   },
 
   async delete(id: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/protocolos/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Accept": "application/json",
-        ...authService.getAuthHeader(),
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Erro ao excluir protocolo" }));
-      throw new Error(error.message || "Erro ao excluir protocolo");
-    }
+    return api.delete<void>(`/protocolos/${id}`);
   },
 
   async uploadAnexo(id: number, file: File): Promise<void> {
     const formData = new FormData();
     formData.append("anexo", file);
-
-    const response = await fetch(`${API_BASE_URL}/protocolos/${id}/anexos`, {
-      method: "POST",
-      headers: {
-        "Accept": "application/json",
-        ...authService.getAuthHeader(),
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Erro ao enviar anexo" }));
-      throw new Error(error.message || "Erro ao enviar anexo");
-    }
+    // api client handles FormData content-type automatically (letting browser set it with boundary)
+    return api.post<void>(`/protocolos/${id}/anexos`, formData);
   },
 
   async downloadTimelinePdf(protocoloId: number): Promise<Blob> {
-    const response = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/timeline-pdf`, {
-      headers: {
-        "Accept": "application/pdf",
-        ...authService.getAuthHeader(),
-      },
+    return api.download(`/protocolos/${protocoloId}/timeline-pdf`, {
+      headers: { "Accept": "application/pdf" }
     });
-
-    if (!response.ok) {
-      throw new Error("Erro ao gerar PDF da timeline");
-    }
-
-    return response.blob();
   },
 
   async downloadCompletoPdf(protocoloId: number): Promise<Blob> {
-    const response = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/pdf-completo`, {
-      headers: {
-        "Accept": "application/pdf",
-        ...authService.getAuthHeader(),
-      },
+    return api.download(`/protocolos/${protocoloId}/pdf-completo`, {
+      headers: { "Accept": "application/pdf" }
     });
-
-    if (!response.ok) {
-      throw new Error("Erro ao gerar PDF completo");
-    }
-
-    return response.blob();
   },
 };

@@ -12,7 +12,7 @@ interface ProcessoResult {
   data: string;
   status: "em_analise" | "deferido" | "indeferido" | "pendente" | "aberto";
   tem_anexos?: boolean;
-  etapas: { titulo: string; data: string; concluida: boolean }[];
+  etapas: { titulo: string; data: string; observacao: string; concluida: boolean }[];
 }
 
 const Consulta = () => {
@@ -94,7 +94,7 @@ const Consulta = () => {
       {/* Search Form */}
       <section className="py-10 md:py-14 -mt-6">
         <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <div className="bg-card rounded-2xl p-6 md:p-8 card-shadow animate-slide-up">
               <Tabs defaultValue="protocolo">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -161,11 +161,33 @@ const Consulta = () => {
                     <p className="text-sm text-muted-foreground mb-1">Protocolo</p>
                     <p className="text-2xl font-bold text-primary">{resultado.protocolo}</p>
                   </div>
-                  {getStatusBadge(resultado.status)}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => import("@/services/publicService").then(m => m.publicService.downloadComprovante(resultado.protocolo))}
+                      className="hidden sm:flex"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Imprimir Comprovante
+                    </Button>
+                    {getStatusBadge(resultado.status)}
+                  </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 mb-8">
-                  <div className="flex items-start gap-3">
+                <div className="sm:hidden mb-6">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => import("@/services/publicService").then(m => m.publicService.downloadComprovante(resultado.protocolo))}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Imprimir Comprovante
+                  </Button>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-3 mb-8">
+                  <div className="flex items-start gap-3 sm:col-span-3 lg:col-span-1">
                     <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="text-sm text-muted-foreground">Assunto</p>
@@ -193,12 +215,12 @@ const Consulta = () => {
                 </div>
 
                 <h3 className="font-semibold mb-4">Andamento do Processo</h3>
-                <div className="space-y-4">
+                <div className="space-y-0 relative before:absolute before:inset-0 before:ml-2.5 before:h-full before:w-0.5 before:bg-muted">
                   {resultado.etapas.map((etapa, index) => (
-                    <div key={index} className="flex items-start gap-3">
+                    <div key={index} className="relative flex gap-6 pb-8 last:pb-0">
                       <div
-                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${etapa.concluida
-                          ? "bg-success text-success-foreground"
+                        className={`absolute left-0 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-4 ring-card ${etapa.concluida
+                          ? "bg-primary text-primary-foreground"
                           : "bg-muted text-muted-foreground"
                           }`}
                       >
@@ -208,11 +230,21 @@ const Consulta = () => {
                           <span className="text-xs">{index + 1}</span>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <p className={`font-medium ${!etapa.concluida && "text-muted-foreground"}`}>
-                          {etapa.titulo}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{etapa.data}</p>
+                      <div className="flex-1 pl-8">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                          <p className={`font-medium ${!etapa.concluida && "text-muted-foreground"}`}>
+                            {etapa.titulo}
+                          </p>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {etapa.data}
+                          </span>
+                        </div>
+                        {etapa.observacao && (
+                          <div className="mt-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                            <p className="whitespace-pre-wrap">{etapa.observacao}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
