@@ -171,20 +171,9 @@ const Abertura = () => {
     setIsSubmitting(true);
 
     try {
-      // Validate required documents
-      const selectedSolicitacao = solicitacoes.find(s => s.id === formData.solicitacao_id);
-      if (selectedSolicitacao?.documentos?.length > 0) {
-        const missingDocs = selectedSolicitacao.documentos.filter((doc: any) => !specificFiles[doc.id]);
-        if (missingDocs.length > 0) {
-          toast({
-            title: "Documentos Pendentes",
-            description: `Por favor, anexe todos os documentos obrigatórios: ${missingDocs.map((d: any) => d.descricao).join(", ")}`,
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
-        }
-      }
+      // Validate required documents (REMOVED: Attachments are now optional)
+      // const selectedSolicitacao = solicitacoes.find(s => s.id === formData.solicitacao_id);
+      // if (selectedSolicitacao?.documentos?.length > 0) { ... }
 
       const data = new FormData();
       // Append all text fields
@@ -487,7 +476,6 @@ const Abertura = () => {
                               <TableCell className="font-medium py-2">
                                 <span className="flex items-center gap-2">
                                   {doc.descricao}
-                                  <span className="text-destructive text-xs">*</span>
                                 </span>
                               </TableCell>
                               <TableCell className="py-2">
@@ -497,7 +485,7 @@ const Abertura = () => {
                                     Anexado
                                   </span>
                                 ) : (
-                                  <span className="text-destructive text-xs font-semibold">Obrigatório</span>
+                                  <span className="text-muted-foreground text-xs font-semibold">Pendente (Opcional)</span>
                                 )}
                               </TableCell>
                               <TableCell className="text-right py-2">
