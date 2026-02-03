@@ -76,16 +76,16 @@ const Contatos = () => {
   return (
     <Layout>
       {/* Header */}
-      <section className="hero-gradient py-10 md:py-14">
+      <section className="hero-gradient py-6 md:py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center text-header-foreground animate-fade-in">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-header-foreground/10">
-              <MessageCircle className="h-7 w-7" />
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-header-foreground/10">
+              <MessageCircle className="h-5 w-5" />
             </div>
-            <h1 className="text-2xl md:text-4xl font-bold mb-2">
+            <h1 className="text-xl md:text-3xl font-bold mb-1">
               Contatos
             </h1>
-            <p className="opacity-80">
+            <p className="opacity-80 text-sm">
               Entre em contato conosco. Estamos aqui para ajudar.
             </p>
           </div>
@@ -93,7 +93,7 @@ const Contatos = () => {
       </section>
 
       {/* Content */}
-      <section className="py-10 md:py-14 -mt-6">
+      <section className="py-6 md:py-10 -mt-6">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <div className="grid gap-8 lg:grid-cols-2">

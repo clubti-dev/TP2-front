@@ -4,15 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, FileText, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Search, FileText, Clock, CheckCircle, AlertCircle, MapPin } from "lucide-react";
 
 interface ProcessoResult {
   protocolo: string;
   assunto: string;
+  secretaria: string;
   data: string;
   status: "em_analise" | "deferido" | "indeferido" | "pendente" | "aberto";
   tem_anexos?: boolean;
-  etapas: { titulo: string; data: string; observacao: string; concluida: boolean }[];
+  setor_atual?: string;
+  etapas: { titulo: string; status_anterior?: string; responsavel?: string; data: string; observacao: string; concluida: boolean }[];
 }
 
 const Consulta = () => {
@@ -50,14 +52,18 @@ const Consulta = () => {
     }
   };
 
+  const getStatusStyle = (status: string) => {
+    const s = status.toLowerCase();
+    if (s.includes("aberto") || s.includes("novo")) return "text-blue-600 bg-blue-50 border-blue-100";
+    if (s.includes("análise") || s.includes("andamento")) return "text-amber-600 bg-amber-50 border-amber-100";
+    if (s.includes("concluído") || s.includes("deferido")) return "text-green-600 bg-green-50 border-green-100";
+    if (s.includes("indeferido") || s.includes("cancelado")) return "text-red-600 bg-red-50 border-red-100";
+    if (s.includes("transferido")) return "text-purple-600 bg-purple-50 border-purple-100";
+    return "text-gray-600 bg-gray-50 border-gray-100";
+  };
+
   const getStatusBadge = (status: ProcessoResult["status"]) => {
-    const styles = {
-      aberto: "bg-blue-500/20 text-blue-600",
-      em_analise: "bg-accent/20 text-accent-foreground",
-      deferido: "bg-success/20 text-success",
-      indeferido: "bg-destructive/20 text-destructive",
-      pendente: "bg-muted text-muted-foreground",
-    };
+    // Map backend keys to descriptions for display
     const labels = {
       aberto: "Aberto",
       em_analise: "Em Análise",
@@ -65,8 +71,12 @@ const Consulta = () => {
       indeferido: "Indeferido",
       pendente: "Pendente",
     };
+
+    // Get style based on the label content
+    const styleClass = getStatusStyle(labels[status]);
+
     return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${styleClass}`}>
         {labels[status]}
       </span>
     );
@@ -75,16 +85,16 @@ const Consulta = () => {
   return (
     <Layout>
       {/* Header */}
-      <section className="hero-gradient py-10 md:py-14">
+      <section className="hero-gradient py-6 md:py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center text-header-foreground animate-fade-in">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-header-foreground/10">
-              <Search className="h-7 w-7" />
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-header-foreground/10">
+              <Search className="h-5 w-5" />
             </div>
-            <h1 className="text-2xl md:text-4xl font-bold mb-2">
+            <h1 className="text-xl md:text-3xl font-bold mb-1">
               Consultar Processo
             </h1>
-            <p className="opacity-80">
+            <p className="opacity-80 text-sm">
               Acompanhe o andamento do seu processo administrativo.
             </p>
           </div>
@@ -92,7 +102,7 @@ const Consulta = () => {
       </section>
 
       {/* Search Form */}
-      <section className="py-10 md:py-14 -mt-6">
+      <section className="py-6 md:py-10 -mt-6">
         <div className="container mx-auto px-4">
           <div className="max-w-[1600px] mx-auto">
             <div className="bg-card rounded-2xl p-6 md:p-8 card-shadow animate-slide-up">
@@ -212,39 +222,93 @@ const Consulta = () => {
                       </div>
                     </div>
                   )}
+                  {resultado.setor_atual && (
+                    <div className="flex items-start gap-3 sm:col-span-3 lg:col-span-1 border-t pt-4 sm:border-t-0 sm:pt-0">
+                      <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Setor Atual</p>
+                        <p className="font-medium">{resultado.setor_atual}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <h3 className="font-semibold mb-4">Andamento do Processo</h3>
-                <div className="space-y-0 relative before:absolute before:inset-0 before:ml-2.5 before:h-full before:w-0.5 before:bg-muted">
+                <div className="relative space-y-8 pl-2 before:absolute before:inset-0 before:ml-6 before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
                   {resultado.etapas.map((etapa, index) => (
-                    <div key={index} className="relative flex gap-6 pb-8 last:pb-0">
-                      <div
-                        className={`absolute left-0 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-4 ring-card ${etapa.concluida
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-muted-foreground"
-                          }`}
-                      >
-                        {etapa.concluida ? (
-                          <CheckCircle className="h-4 w-4" />
-                        ) : (
-                          <span className="text-xs">{index + 1}</span>
-                        )}
+                    <div key={index} className="relative flex gap-6">
+                      <div className="absolute left-0 top-1 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background border ring-4 ring-background font-bold text-xs text-muted-foreground">
+                        {index + 1}
                       </div>
-                      <div className="flex-1 pl-8">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                          <p className={`font-medium ${!etapa.concluida && "text-muted-foreground"}`}>
-                            {etapa.titulo}
-                          </p>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
+
+                      <div className="flex flex-col gap-2 pl-10 w-full">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                          <span className="text-sm font-medium text-muted-foreground">
                             {etapa.data}
                           </span>
                         </div>
-                        {etapa.observacao && (
-                          <div className="mt-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
-                            <p className="whitespace-pre-wrap">{etapa.observacao}</p>
-                          </div>
-                        )}
+
+                        <div className="rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md">
+                          <table className="w-full text-sm">
+                            <tbody>
+                              {/* Status Line */}
+                              <tr>
+                                <td className="w-24 font-semibold text-muted-foreground align-top py-1.5">Status:</td>
+                                <td className="align-top py-1">
+                                  <span className={`inline-flex px-2 py-0.5 rounded text-sm font-semibold border ${getStatusStyle(
+                                    etapa.titulo.startsWith("Transferido")
+                                      ? etapa.status_anterior || "Aberto"
+                                      : etapa.titulo
+                                  )}`}>
+                                    {etapa.titulo.startsWith("Transferido")
+                                      ? etapa.status_anterior || "Aberto"
+                                      : etapa.titulo}
+                                  </span>
+                                </td>
+                              </tr>
+
+                              {/* Secretaria Line */}
+                              <tr>
+                                <td className="w-24 font-semibold text-muted-foreground align-top py-1">Secretaria:</td>
+                                <td className="font-medium align-top py-1">
+                                  {resultado.secretaria}
+                                </td>
+                              </tr>
+
+                              {/* Setor Line */}
+                              <tr>
+                                <td className="w-24 font-semibold text-muted-foreground align-top py-1">Setor:</td>
+                                <td className="font-medium align-top py-1">
+                                  {etapa.titulo.startsWith("Transferido") ? (
+                                    <span>{etapa.titulo}</span>
+                                  ) : (
+                                    index === 0 ? resultado.setor_atual : "-"
+                                  )}
+                                </td>
+                              </tr>
+
+                              {/* Responsável Line */}
+                              {etapa.responsavel && (
+                                <tr>
+                                  <td className="w-24 font-semibold text-muted-foreground align-top py-1">Responsável:</td>
+                                  <td className="font-medium align-top py-1">
+                                    {etapa.responsavel}
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+
+                          {/* Dispatch Indicator */}
+                          {etapa.observacao && !etapa.titulo.startsWith("Transferido") && (
+                            <div className="pt-1">
+                              <div className="text-xs text-muted-foreground flex items-center gap-1.5 italic bg-muted/30 p-2 rounded w-fit">
+                                <FileText className="h-3 w-3" />
+                                <span>Possui despacho/observação interna</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
