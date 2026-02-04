@@ -257,14 +257,7 @@ const Protocolos = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate(`/admin/protocolos/${idUtils.encode(protocolo.id)}/timeline`)}
-                          title="Histórico / Timeline"
-                        >
-                          <History className="h-4 w-4" />
-                        </Button>
+
                         <Button
                           variant="ghost"
                           size="icon"

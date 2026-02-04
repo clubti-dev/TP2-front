@@ -304,6 +304,7 @@ const ProtocoloDetalhes = () => {
                     onSave={handleSave}
                     isSaving={isSaving}
                     onCancel={() => navigate("/admin/protocolos")}
+                    movimentacoes={protocolo.movimentacoes}
                 />
             </div>
         </div>

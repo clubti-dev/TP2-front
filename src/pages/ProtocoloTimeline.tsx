@@ -52,7 +52,8 @@ const ProtocoloTimeline = () => {
         }
     };
 
-    const getStatusColor = (statusDesc: string) => {
+    const getStatusColor = (statusDesc?: string) => {
+        if (!statusDesc) return "#6b7280";
         const status = statusList.find(s => s.descricao === statusDesc);
         return status ? status.cor : "#6b7280"; // Default gray if not found
     };
@@ -62,7 +63,7 @@ const ProtocoloTimeline = () => {
     // ... inside render ...
 
 
-    const getStatusIcon = (status: string) => {
+    const getStatusIcon = (status?: string) => {
         const s = status?.toLowerCase() || "";
         if (s.includes("concluído") || s.includes("concluido")) return <CheckCircle2 className="h-6 w-6 text-green-500" />;
         if (s.includes("cancelado") || s.includes("indeferido")) return <XCircle className="h-6 w-6 text-red-500" />;
@@ -237,7 +238,7 @@ const ProtocoloTimeline = () => {
                                 movimentacoes.map((mov) => (
                                     <div key={mov.id} className="relative flex gap-6">
                                         <div className="absolute left-0 top-1 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background border ring-4 ring-background">
-                                            {getStatusIcon(mov.status_novo)}
+                                            {getStatusIcon(mov.status?.descricao)}
                                         </div>
                                         <div className="flex flex-col gap-2 pl-12 w-full">
                                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
@@ -246,10 +247,10 @@ const ProtocoloTimeline = () => {
                                                 </span>
                                                 <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-full w-fit">
                                                     <Avatar className="h-5 w-5">
-                                                        <AvatarImage src={mov.usuario?.avatar} />
+                                                        <AvatarImage src={mov.responsavel?.avatar} />
                                                         <AvatarFallback className="text-[10px]"><User className="h-3 w-3" /></AvatarFallback>
                                                     </Avatar>
-                                                    <span>{mov.usuario?.name || "Sistema"}</span>
+                                                    <span>{mov.responsavel?.name || "Sistema"}</span>
                                                 </div>
                                             </div>
 
@@ -259,16 +260,12 @@ const ProtocoloTimeline = () => {
                                                     <span
                                                         className="text-base font-bold"
                                                         style={{
-                                                            color: getStatusColor(mov.status_novo)
+                                                            color: getStatusColor(mov.status?.descricao)
                                                         }}
                                                     >
-                                                        {mov.status_novo}
+                                                        {mov.status?.descricao || "Atualização"}
                                                     </span>
-                                                    {mov.status_anterior && (
-                                                        <span className="text-xs text-muted-foreground ml-2">
-                                                            (anterior: {mov.status_anterior})
-                                                        </span>
-                                                    )}
+
                                                 </div>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
                                                     {mov.observacao}

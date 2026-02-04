@@ -39,6 +39,7 @@ export interface Protocolo {
     created_at: string;
     documento_necessario_id?: number | null;
   }[];
+  movimentacoes?: Movimentacao[];
   created_at?: string;
   updated_at?: string;
 }
@@ -62,16 +63,29 @@ export const statusColors: Record<string, string> = {
 export interface Movimentacao {
   id: number;
   protocolo_id: number;
-  usuario_id: number;
-  status_anterior: string | null;
-  status_novo: string;
+  responsavel_id: number;
+  status_id: number;
   observacao: string;
   created_at: string;
-  usuario: {
+  responsavel?: { // Renamed from usuario
     id: number;
     name: string;
     email: string;
     avatar?: string;
+  };
+  status?: {
+    id: number;
+    descricao: string;
+    cor: string;
+  };
+  setor_id?: number;
+  setor?: {
+    id: number;
+    descricao: string;
+    secretaria?: {
+      id: number;
+      descricao: string;
+    };
   };
 }
 

@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, FileText, Clock, AlertCircle, MapPin, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
+import { Search, FileText, Clock, AlertCircle, MapPin, ArrowRight, ArrowLeft, Loader2, User, Building2 } from "lucide-react";
 import { publicService } from "@/services/publicService";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
@@ -15,7 +15,8 @@ interface ProcessoResult {
   status: "em_analise" | "deferido" | "indeferido" | "pendente" | "aberto";
   tem_anexos?: boolean;
   setor_atual?: string;
-  etapas: { titulo: string; status_anterior?: string; responsavel?: string; data: string; observacao: string; concluida: boolean }[];
+  secretaria_atual?: string;
+  etapas: { titulo: string; status_anterior?: string; responsavel?: string; data: string; observacao: string; concluida: boolean; setor?: string; secretaria?: string }[];
 }
 
 const Consulta = () => {
@@ -102,7 +103,7 @@ const Consulta = () => {
       {/* Main Content */}
       <section className="py-8 mt-4 relative z-10">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
 
             {/* SEARCH BOX */}
             {!selectedProtocol && (
@@ -268,36 +269,53 @@ const Consulta = () => {
                   </Button>
                 </div>
 
-                <div className="grid gap-6 sm:grid-cols-3 mb-10 bg-muted/10 p-6 rounded-xl border">
-                  <div className="flex items-start gap-4 sm:col-span-3 lg:col-span-1">
-                    <div className="bg-background p-2 rounded-lg border shadow-sm">
-                      <FileText className="h-5 w-5 text-primary" />
+                <div className="grid gap-6 sm:grid-cols-3 mb-10 bg-muted/10 p-5 rounded-xl border">
+
+                  {/* Secretaria */}
+                  <div className="flex items-start gap-3">
+                    <div className="bg-background p-1.5 rounded-lg border shadow-sm">
+                      <Building2 className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground font-medium">Assunto</p>
-                      <p className="font-semibold text-lg">{selectedProtocol.assunto}</p>
+                      <p className="text-xs text-muted-foreground font-medium mb-0.5">Secretaria</p>
+                      <p className="font-semibold text-sm leading-tight">{selectedProtocol.secretaria_atual || selectedProtocol.secretaria}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <div className="bg-background p-2 rounded-lg border shadow-sm">
-                      <Clock className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground font-medium">Data de Abertura</p>
-                      <p className="font-semibold text-lg">{selectedProtocol.data}</p>
-                    </div>
-                  </div>
+
+                  {/* Setor */}
                   {selectedProtocol.setor_atual && (
-                    <div className="flex items-start gap-4 sm:col-span-3 lg:col-span-1">
-                      <div className="bg-background p-2 rounded-lg border shadow-sm">
-                        <MapPin className="h-5 w-5 text-primary" />
+                    <div className="flex items-start gap-3">
+                      <div className="bg-background p-1.5 rounded-lg border shadow-sm">
+                        <MapPin className="h-4 w-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground font-medium">Setor Atual</p>
-                        <p className="font-semibold text-lg">{selectedProtocol.setor_atual}</p>
+                        <p className="text-xs text-muted-foreground font-medium mb-0.5">Setor Atual</p>
+                        <p className="font-semibold text-sm leading-tight">{selectedProtocol.setor_atual}</p>
                       </div>
                     </div>
                   )}
+
+                  {/* Data */}
+                  <div className="flex items-start gap-3">
+                    <div className="bg-background p-1.5 rounded-lg border shadow-sm">
+                      <Clock className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-0.5">Data de Abertura</p>
+                      <p className="font-semibold text-sm leading-tight">{selectedProtocol.data}</p>
+                    </div>
+                  </div>
+
+                  {/* Assunto (Full Width) */}
+                  <div className="flex items-start gap-3 sm:col-span-3 pt-4 border-t border-dashed">
+                    <div className="bg-background p-1.5 rounded-lg border shadow-sm">
+                      <FileText className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground font-medium mb-0.5">Solicitação</p>
+                      <p className="font-semibold text-sm leading-tight">{selectedProtocol.assunto}</p>
+                    </div>
+                  </div>
                 </div>
 
                 <h3 className="font-bold text-xl mb-6 flex items-center gap-2">
@@ -310,9 +328,9 @@ const Consulta = () => {
                     <div key={index} className="relative flex gap-6 group">
                       <div className={`
                          absolute left-0 top-1 z-10 flex h-8 w-8 items-center justify-center rounded-full border ring-4 ring-background font-bold text-xs transition-colors
-                         ${index === 0 ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground'}
+                         ${index === selectedProtocol.etapas.length - 1 ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground'}
                       `}>
-                        {selectedProtocol.etapas.length - index}
+                        {index + 1}
                       </div>
 
                       <div className="flex flex-col gap-2 pl-10 w-full">
@@ -328,11 +346,23 @@ const Consulta = () => {
                               <span className={`inline-flex px-2.5 py-0.5 rounded-md text-sm font-bold border ${getStatusStyle(etapa.titulo)}`}>
                                 {etapa.titulo}
                               </span>
+                              {etapa.responsavel && (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                  <User className="h-3 w-3 mr-1" />
+                                  {etapa.responsavel}
+                                </span>
+                              )}
                             </div>
                           </div>
 
                           <table className="w-full text-sm">
                             <tbody>
+                              <tr>
+                                <td className="w-24 font-medium text-muted-foreground align-top py-1">Secretaria:</td>
+                                <td className="font-medium align-top py-1">
+                                  {etapa.secretaria || <span className="text-muted-foreground">-</span>}
+                                </td>
+                              </tr>
                               <tr>
                                 <td className="w-24 font-medium text-muted-foreground align-top py-1">Setor:</td>
                                 <td className="font-medium align-top py-1">
@@ -340,30 +370,13 @@ const Consulta = () => {
                                   {etapa.observacao && etapa.observacao.startsWith("Processo transferido") ? (
                                     <span className="text-xs text-muted-foreground">{etapa.observacao}</span>
                                   ) : (
-                                    index === 0 ? selectedProtocol.setor_atual : <span className="text-muted-foreground">-</span>
+                                    etapa.setor || (index === 0 ? selectedProtocol.setor_atual : <span className="text-muted-foreground">-</span>)
                                   )}
                                 </td>
                               </tr>
 
-                              {etapa.responsavel && (
-                                <tr>
-                                  <td className="w-24 font-medium text-muted-foreground align-top py-1">Responsável:</td>
-                                  <td className="font-medium align-top py-1 text-foreground">
-                                    {etapa.responsavel}
-                                  </td>
-                                </tr>
-                              )}
 
-                              {etapa.observacao && !etapa.titulo.startsWith("Transferido") && !etapa.observacao.startsWith("Processo transferido") && (
-                                <tr>
-                                  <td className="w-24 font-medium text-muted-foreground align-top py-3">Despacho:</td>
-                                  <td className="align-top py-3">
-                                    <div className="bg-muted/30 p-3 rounded-lg text-sm italic border-l-2 border-primary/50 text-muted-foreground">
-                                      "{etapa.observacao}"
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
+
                             </tbody>
                           </table>
                         </div>
@@ -376,7 +389,7 @@ const Consulta = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </Layout >
   );
 };
 
