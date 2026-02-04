@@ -7,13 +7,22 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Upload, CheckCircle, Search, Loader2 } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { FileText, CheckCircle, Search, Loader2, ArrowRight, ArrowLeft, User, MapPin } from "lucide-react";
 import { publicService, CreatePublicProtocoloData } from "@/services/publicService";
 import { Secretaria } from "@/services/secretariaService";
+import { FileUpload } from "@/components/ui/file-upload";
+import { motion, AnimatePresence } from "framer-motion";
+
+const steps = [
+  { id: 1, title: "Identificação", icon: User },
+  { id: 2, title: "Dados Pessoais", icon: MapPin },
+  { id: 3, title: "Solicitação", icon: FileText },
+  { id: 4, title: "Documentos", icon: CheckCircle },
+];
 
 const Abertura = () => {
   const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -38,10 +47,7 @@ const Abertura = () => {
   });
 
   const [solicitacoes, setSolicitacoes] = useState<any[]>([]);
-  // Store specific files mapped by document ID
   const [specificFiles, setSpecificFiles] = useState<Record<number, File>>({});
-  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
-  const [isAddressLocked, setIsAddressLocked] = useState(true);
   const [isCepLoading, setIsCepLoading] = useState(false);
 
   useEffect(() => {
@@ -66,14 +72,6 @@ const Abertura = () => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSelectChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: parseInt(value) }));
-    if (field === 'solicitacao_id') {
-      // Reset specific files when solicitation changes
-      setSpecificFiles({});
-    }
-  };
-
   const handleCepBlur = async () => {
     if (!formData.cep || formData.cep.length < 8) return;
 
@@ -92,18 +90,11 @@ const Abertura = () => {
           title: "Endereço Encontrado",
           description: "Os campos foram preenchidos automaticamente.",
         });
-      } else {
-        toast({
-          title: "CEP não encontrado",
-          description: "Preencha o endereço manualmente.",
-          variant: "destructive"
-        });
       }
     } catch (e) {
       // quiet error
     } finally {
       setIsCepLoading(false);
-      setIsAddressLocked(false);
     }
   };
 
@@ -137,10 +128,11 @@ const Abertura = () => {
           title: "Encontrado",
           description: "Dados do solicitante preenchidos automaticamente.",
         });
+        // Optional: Auto-advance if found? No, let user verify.
       } else {
         toast({
           title: "Não encontrado",
-          description: "Solicitante não encontrado. Preencha os dados para cadastro.",
+          description: "Solicitante não encontrado. Prossiga com o preenchimento.",
         });
       }
     } catch (error) {
@@ -154,34 +146,51 @@ const Abertura = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setAttemptedSubmit(true);
+  const validateStep = (step: number) => {
+    switch (step) {
+      case 1: // Identificação
+        if (!formData.cpf_cnpj) return false;
+        return true;
+      case 2: // Dados Pessoais
+        if (!formData.nome || !formData.email || !formData.fone) return false;
+        return true;
+      case 3: // Solicitação
+        if (!formData.solicitacao_id || !formData.descricao) return false;
+        return true;
+      case 4: // Documentos (Optional mostly)
+        return true;
+      default:
+        return false;
+    }
+  };
 
-    // Validate textual required fields
-    if (!formData.cpf_cnpj || !formData.nome || !formData.email || !formData.fone || !formData.solicitacao_id || !formData.descricao) {
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => prev + 1);
+      window.scrollTo(0, 0);
+    } else {
       toast({
         title: "Campos Obrigatórios",
-        description: "Por favor, preencha todos os campos destacados em vermelho.",
+        description: "Por favor, preencha todos os campos obrigatórios antes de prosseguir.",
         variant: "destructive",
       });
-      return;
     }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => prev - 1);
+    window.scrollTo(0, 0);
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep(4)) return;
 
     setIsSubmitting(true);
-
     try {
-      // Validate required documents (REMOVED: Attachments are now optional)
-      // const selectedSolicitacao = solicitacoes.find(s => s.id === formData.solicitacao_id);
-      // if (selectedSolicitacao?.documentos?.length > 0) { ... }
-
       const data = new FormData();
-      // Append all text fields
       Object.entries(formData).forEach(([key, value]) => {
         data.append(key, value.toString());
       });
-
-      // Append specific files (anexos[DOC_ID])
       Object.entries(specificFiles).forEach(([docId, file]) => {
         data.append(`anexos[${docId}]`, file);
       });
@@ -190,8 +199,8 @@ const Abertura = () => {
       setProtocolo(result.protocolo);
       setSubmitted(true);
       toast({
-        title: "Processo aberto com sucesso!",
-        description: `Seu número de protocolo é: ${result.protocolo}`,
+        title: "Sucesso!",
+        description: `Protocolo gerado: ${result.protocolo}`,
       });
     } catch (error) {
       toast({
@@ -207,53 +216,47 @@ const Abertura = () => {
   if (submitted) {
     return (
       <Layout>
-        <section className="py-12 md:py-20">
+        <section className="py-12 md:py-20 min-h-[60vh] flex items-center justify-center">
           <div className="container mx-auto px-4">
             <div className="max-w-lg mx-auto text-center animate-scale-in">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-success/10 text-success">
-                <CheckCircle className="h-10 w-10" />
+              <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-success/10 text-success ring-8 ring-success/5">
+                <CheckCircle className="h-12 w-12" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-4">
-                Solicitação Enviada!
-              </h1>
-              <p className="text-muted-foreground mb-6">
-                Seu processo foi registrado com sucesso. Guarde o número do protocolo para acompanhamento.
+              <h1 className="text-3xl md:text-4xl font-bold mb-4">Solicitação Recebida!</h1>
+              <p className="text-muted-foreground mb-8 text-lg">
+                Seu processo foi registrado com sucesso.
               </p>
-              <div className="bg-muted rounded-xl p-6 mb-8">
-                <p className="text-sm text-muted-foreground mb-2">Número do Protocolo</p>
-                <p className="text-3xl font-bold text-primary">{protocolo}</p>
+
+              <div className="bg-card border rounded-2xl p-8 mb-8 shadow-sm">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Número do Protocolo</p>
+                <p className="text-4xl font-mono font-bold text-primary tracking-tight">{protocolo}</p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button onClick={() => {
-                  setSubmitted(false);
-                  setFormData({
-                    nome: "",
-                    cpf_cnpj: "",
-                    email: "",
-                    fone: "",
-                    logradouro_nome: "",
-                    numero: "",
-                    bairro: "",
-                    cidade: "",
-                    uf: "",
-                    cep: "",
-                    solicitacao_id: 0,
-                    secretaria_id: 0,
-                    descricao: "",
-                  });
-                  setSpecificFiles({});
-                }}>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setCurrentStep(1);
+                    setFormData({
+                      nome: "", cpf_cnpj: "", email: "", fone: "", logradouro_nome: "", numero: "",
+                      bairro: "", cidade: "", uf: "", cep: "", solicitacao_id: 0, secretaria_id: 0, descricao: "",
+                    });
+                    setSpecificFiles({});
+                  }}
+                >
                   Nova Solicitação
                 </Button>
                 <Button
                   variant="outline"
+                  size="lg"
                   onClick={() => publicService.downloadComprovante(protocolo)}
                 >
                   <FileText className="mr-2 h-4 w-4" />
-                  Imprimir Comprovante
+                  Comprovante
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/consulta">Consultar Processo</Link>
+                <Button variant="ghost" size="lg" asChild>
+                  <Link to="/consulta">Consultar Status</Link>
                 </Button>
               </div>
             </div>
@@ -265,288 +268,269 @@ const Abertura = () => {
 
   return (
     <Layout>
-      {/* Header */}
-      <section className="hero-gradient py-6 md:py-8">
+      <section className="hero-gradient py-12 text-center text-header-foreground">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center text-header-foreground animate-fade-in">
-            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-header-foreground/10">
-              <FileText className="h-5 w-5" />
-            </div>
-            <h1 className="text-xl md:text-3xl font-bold mb-1">
-              Abertura de Processo
-            </h1>
-            <p className="opacity-80 text-sm">
-              Aqui você pode iniciar a solicitação de um processo administrativo, preenchendo os campos abaixo.
-              <br />
-              Este procedimento resultará na geração de um pré-cadastro de Processo que será avaliado por sua Prefeitura.
-            </p>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Abertura de Processo</h1>
+          <p className="opacity-80 max-w-2xl mx-auto">
+            Siga os passos abaixo para registrar sua solicitação junto à prefeitura.
+          </p>
         </div>
       </section>
 
-      {/* Form */}
-      <section className="py-6 md:py-10 -mt-6">
-        <div className="container mx-auto px-4">
-          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto" noValidate>
-            <div className="bg-card rounded-2xl p-6 md:p-8 card-shadow animate-slide-up">
-              <h2 className="text-lg font-semibold mb-6 pb-4 border-b">
-                Dados do Solicitante
-              </h2>
+      <section className="py-8 mt-4 relative z-10">
+        <div className="container mx-auto px-4 max-w-4xl">
+          {/* Stepper Header */}
+          <div className="bg-card rounded-2xl shadow-lg border p-4 mb-6 hidden md:flex items-center justify-between">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = step.id === currentStep;
+              const isCompleted = step.id < currentStep;
 
-              <div className="grid gap-3 sm:grid-cols-4">
-                <div className="space-y-1 sm:col-span-1">
-                  <Label htmlFor="cpf_cnpj">CPF / CNPJ <span className="text-destructive">*</span></Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="cpf_cnpj"
-                      placeholder="Doc..."
-                      required
-                      value={formData.cpf_cnpj}
-                      onChange={handleInputChange}
-                      className={attemptedSubmit && !formData.cpf_cnpj ? "border-destructive focus-visible:ring-destructive" : ""}
-                    />
-                    <Button type="button" variant="outline" size="icon" onClick={handleSearchSolicitante} disabled={isSearching}>
-                      {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                    </Button>
+              return (
+                <div key={step.id} className="flex items-center flex-1 last:flex-none">
+                  <div className={`flex items-center gap-3 ${isActive ? 'text-primary' : isCompleted ? 'text-success' : 'text-muted-foreground'}`}>
+                    <div className={`
+                      h-10 w-10 rounded-full flex items-center justify-center border-2 font-semibold transition-all
+                      ${isActive ? 'border-primary bg-primary/10' : isCompleted ? 'border-success bg-success text-success-foreground' : 'border-muted-foreground/30'}
+                    `}>
+                      {isCompleted ? <CheckCircle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                    </div>
+                    <div className="hidden lg:block">
+                      <p className="text-xs font-semibold uppercase tracking-wider opacity-70">Passo {step.id}</p>
+                      <p className="font-semibold text-sm">{step.title}</p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="space-y-1 sm:col-span-2">
-                  <Label htmlFor="nome">Nome Completo <span className="text-destructive">*</span></Label>
-                  <Input
-                    id="nome"
-                    placeholder="Seu nome completo"
-                    required
-                    value={formData.nome}
-                    onChange={handleInputChange}
-                    className={attemptedSubmit && !formData.nome ? "border-destructive focus-visible:ring-destructive" : ""}
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-1">
-                  <Label htmlFor="fone">Telefone <span className="text-destructive">*</span></Label>
-                  <Input
-                    id="fone"
-                    placeholder="(00) 00..."
-                    required
-                    value={formData.fone}
-                    onChange={handleInputChange}
-                    className={attemptedSubmit && !formData.fone ? "border-destructive focus-visible:ring-destructive" : ""}
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-1">
-                  <Label htmlFor="cep">
-                    CEP
-                    {isCepLoading && <Loader2 className="inline h-3 w-3 animate-spin ml-2" />}
-                  </Label>
-                  <Input
-                    id="cep"
-                    placeholder="00000-000"
-                    value={formData.cep}
-                    onChange={handleInputChange}
-                    onBlur={handleCepBlur}
-                    maxLength={9}
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-2">
-                  <Label htmlFor="logradouro_nome">Endereço</Label>
-                  <Input
-                    id="logradouro_nome"
-                    placeholder="Rua, Avenida, etc"
-                    value={formData.logradouro_nome}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-1">
-                  <Label htmlFor="numero">Número</Label>
-                  <Input
-                    id="numero"
-                    placeholder="123"
-                    value={formData.numero}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-2">
-                  <Label htmlFor="bairro">Bairro</Label>
-                  <Input
-                    id="bairro"
-                    placeholder="Bairro"
-                    value={formData.bairro}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-1">
-                  <Label htmlFor="cidade">Cidade</Label>
-                  <Input
-                    id="cidade"
-                    placeholder="Cidade"
-                    value={formData.cidade}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-1">
-                  <Label htmlFor="uf">UF</Label>
-                  <Input
-                    id="uf"
-                    placeholder="UF"
-                    maxLength={2}
-                    value={formData.uf}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="space-y-1 sm:col-span-4">
-                  <Label htmlFor="email">E-mail <span className="text-destructive">*</span></Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    required
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className={attemptedSubmit && !formData.email ? "border-destructive focus-visible:ring-destructive" : ""}
-                  />
-                </div>
-              </div>
-
-              <h2 className="text-lg font-semibold mt-8 mb-6 pb-4 border-b">
-                Dados da Solicitação
-              </h2>
-
-              <div className="grid gap-5">
-                <div className="space-y-2">
-                  <Label htmlFor="solicitacao_id">Tipo de Solicitação <span className="text-destructive">*</span></Label>
-                  <Select required onValueChange={(value) => {
-                    const selectedSolicitacaoId = parseInt(value);
-                    const selectedSolicitacao = solicitacoes.find(s => s.id === selectedSolicitacaoId);
-                    setFormData(prev => ({
-                      ...prev,
-                      solicitacao_id: selectedSolicitacaoId,
-                      secretaria_id: selectedSolicitacao?.secretaria_id || 0
-                    }));
-                  }}>
-                    <SelectTrigger className={attemptedSubmit && !formData.solicitacao_id ? "border-destructive focus:ring-destructive" : ""}>
-                      <SelectValue placeholder="Selecione o tipo de solicitação" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {solicitacoes.map((solicitacao) => (
-                        <SelectItem key={solicitacao.id} value={solicitacao.id.toString()}>
-                          {solicitacao.secretaria?.sigla} - {solicitacao.descricao}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="descricao">Descrição da Solicitação <span className="text-destructive">*</span></Label>
-                  <Textarea
-                    id="descricao"
-                    placeholder="Descreva detalhadamente sua solicitação..."
-                    required
-                    value={formData.descricao}
-                    onChange={handleInputChange}
-                    className={attemptedSubmit && !formData.descricao ? "border-destructive focus-visible:ring-destructive" : ""}
-                    rows={4}
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <Label>Documentos Obrigatórios</Label>
-
-                  {formData.solicitacao_id > 0 && solicitacoes.find(s => s.id === formData.solicitacao_id)?.documentos?.length > 0 ? (
-                    <div className="border rounded-xl overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Documento / Declaração</TableHead>
-                            <TableHead className="w-[100px]">Status</TableHead>
-                            <TableHead className="w-[150px] text-right">Ação</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {solicitacoes.find(s => s.id === formData.solicitacao_id)?.documentos.map((doc: any) => (
-                            <TableRow key={doc.id}>
-                              <TableCell className="font-medium py-2">
-                                <span className="flex items-center gap-2">
-                                  {doc.descricao}
-                                </span>
-                              </TableCell>
-                              <TableCell className="py-2">
-                                {specificFiles[doc.id] ? (
-                                  <span className="flex items-center text-primary text-xs font-medium">
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Anexado
-                                  </span>
-                                ) : (
-                                  <span className="text-muted-foreground text-xs font-semibold">Pendente (Opcional)</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right py-2">
-                                <div className="relative inline-block">
-                                  <Input
-                                    type="file"
-                                    id={`doc-${doc.id}`}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    onChange={(e) => {
-                                      if (e.target.files && e.target.files[0]) {
-                                        const file = e.target.files[0];
-                                        setSpecificFiles(prev => ({
-                                          ...prev,
-                                          [doc.id]: file
-                                        }));
-                                      }
-                                    }}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  <Button
-                                    variant={specificFiles[doc.id] ? "outline" : "default"}
-                                    size="sm"
-                                    type="button"
-                                    className={`pointer-events-none h-8 ${specificFiles[doc.id] ? "border-primary text-primary hover:bg-primary/10" : ""}`}
-                                  >
-                                    {specificFiles[doc.id] ? <><CheckCircle className="mr-2 h-3 w-3" /> Alterar</> : <><Upload className="mr-2 h-3 w-3" /> Anexar</>}
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-xl text-center">
-                      Nenhum documento específico obrigatório para este tipo de solicitação.
-                    </div>
+                  {index < steps.length - 1 && (
+                    <div className={`h-1 flex-1 mx-4 rounded-full ${isCompleted ? 'bg-success' : 'bg-muted'}`} />
                   )}
                 </div>
-              </div>
+              );
+            })}
+          </div>
 
-              <div className="mt-8 pt-6 border-t">
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={isSubmitting}
+          {/* Mobile Stepper */}
+          <div className="md:hidden bg-card rounded-xl p-4 mb-6 shadow-sm border flex items-center justify-between">
+            <span className="text-sm font-semibold text-muted-foreground">Passo {currentStep} de 4</span>
+            <span className="font-bold text-primary">{steps[currentStep - 1].title}</span>
+          </div>
+
+          {/* Step Content */}
+          <div className="bg-card rounded-2xl shadow-lg border overflow-hidden min-h-[400px] flex flex-col">
+            <div className="p-6 md:p-8 flex-1">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                      Enviando...
-                    </>
-                  ) : (
-                    "Enviar Solicitação"
+
+                  {/* STEP 1: IDENTIFICAÇÃO */}
+                  {currentStep === 1 && (
+                    <div className="space-y-6 max-w-xl mx-auto py-4">
+                      <div className="text-center mb-8">
+                        <h2 className="text-2xl font-bold mb-2">Vamos começar</h2>
+                        <p className="text-muted-foreground">Informe seu CPF para verificarmos se você já possui cadastro.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="cpf_cnpj" className="text-base">CPF</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="cpf_cnpj"
+                            placeholder="000.000.000-00"
+                            value={formData.cpf_cnpj}
+                            onChange={(e) => {
+                              let v = e.target.value.replace(/\D/g, "");
+                              if (v.length > 11) v = v.substring(0, 11);
+                              v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                              v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                              v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                              setFormData((prev) => ({ ...prev, cpf_cnpj: v }));
+                            }}
+                            className="text-lg h-12"
+                            autoFocus
+                            maxLength={14}
+                          />
+                          <Button size="lg" className="h-12 w-12 shrink-0" onClick={handleSearchSolicitante} disabled={isSearching}>
+                            {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Clique na lupa para buscar seus dados automaticamente.</p>
+                      </div>
+                    </div>
                   )}
-                </Button>
-              </div>
+
+                  {/* STEP 2: DADOS PESSOAIS */}
+                  {currentStep === 2 && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="md:col-span-2 mb-4 border-b pb-2">
+                        <h2 className="text-lg font-semibold">Dados de Contato</h2>
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="nome">Nome Completo <span className="text-destructive">*</span></Label>
+                        <Input id="nome" required value={formData.nome} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email">E-mail <span className="text-destructive">*</span></Label>
+                        <Input id="email" type="email" required value={formData.email} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="fone">Telefone / WhatsApp <span className="text-destructive">*</span></Label>
+                        <Input id="fone" required value={formData.fone} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="md:col-span-2 mt-4 mb-2 border-b pb-2">
+                        <h2 className="text-lg font-semibold">Endereço</h2>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="cep">CEP {isCepLoading && <Loader2 className="inline h-3 w-3 animate-spin" />}</Label>
+                        <Input id="cep" value={formData.cep} onChange={handleInputChange} onBlur={handleCepBlur} maxLength={9} />
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="logradouro_nome">Logradouro</Label>
+                        <Input id="logradouro_nome" value={formData.logradouro_nome} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="numero">Número</Label>
+                        <Input id="numero" value={formData.numero} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="bairro">Bairro</Label>
+                        <Input id="bairro" value={formData.bairro} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="cidade">Cidade</Label>
+                        <Input id="cidade" value={formData.cidade} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="uf">UF</Label>
+                        <Input id="uf" value={formData.uf} onChange={handleInputChange} maxLength={2} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 3: SOLICITAÇÃO */}
+                  {currentStep === 3 && (
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <Label htmlFor="solicitacao_id" className="text-base">O que você precisa?</Label>
+                        <Select onValueChange={(value) => {
+                          const id = parseInt(value);
+                          const selected = solicitacoes.find(s => s.id === id);
+                          setFormData(prev => ({ ...prev, solicitacao_id: id, secretaria_id: selected?.secretaria_id || 0 }));
+                          setSpecificFiles({});
+                        }} value={formData.solicitacao_id ? formData.solicitacao_id.toString() : ""}>
+                          <SelectTrigger className="h-12">
+                            <SelectValue placeholder="Selecione o tipo de serviço..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {solicitacoes.map(item => (
+                              <SelectItem key={item.id} value={item.id.toString()}>
+                                {item.descricao}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label htmlFor="descricao" className="text-base">Descreva sua solicitação</Label>
+                        <Textarea
+                          id="descricao"
+                          rows={8}
+                          placeholder="Detalhe aqui sua necessidade com o máximo de informações possível..."
+                          required
+                          value={formData.descricao}
+                          onChange={handleInputChange}
+                          className="resize-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 4: DOCUMENTOS */}
+                  {currentStep === 4 && (
+                    <div className="space-y-6">
+                      <div className="text-center mb-6">
+                        <h2 className="text-xl font-semibold">Documentação Necessária</h2>
+                        <p className="text-muted-foreground">Anexe os arquivos solicitados abaixo para agilizar sua análise.</p>
+                      </div>
+
+                      {formData.solicitacao_id > 0 && solicitacoes.find(s => s.id === formData.solicitacao_id)?.documentos?.length > 0 ? (
+                        <div className="flex flex-col gap-3">
+                          {solicitacoes.find(s => s.id === formData.solicitacao_id)?.documentos.map((doc: any) => (
+                            <div key={doc.id} className="bg-muted/30 p-2 pl-4 rounded-xl border flex items-center gap-4 group hover:border-primary/30 transition-colors">
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className="bg-primary/10 p-2 rounded-lg text-primary shrink-0">
+                                  <FileText className="h-5 w-5" />
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-sm">{doc.descricao}</p>
+                                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Obrigatório</p>
+                                </div>
+                              </div>
+
+                              <div className="w-[180px] shrink-0">
+                                <FileUpload
+                                  onFileSelect={(file) => setSpecificFiles(prev => ({ ...prev, [doc.id]: file! }))}
+                                  selectedFile={specificFiles[doc.id]}
+                                  label="Anexar Arquivo"
+                                  className="p-2 min-h-[50px] text-xs h-full"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed rounded-2xl p-10 text-center text-muted-foreground bg-muted/20">
+                          <CheckCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                          <p className="text-lg font-medium">Nenhum documento específico obrigatório</p>
+                          <p className="text-sm">Você pode prosseguir para a finalização do protocolo.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                </motion.div>
+              </AnimatePresence>
             </div>
-          </form>
+
+            {/* Footer Navigation */}
+            <div className="bg-muted/30 p-4 md:p-6 border-t flex justify-between items-center">
+              <Button
+                variant="ghost"
+                onClick={prevStep}
+                disabled={currentStep === 1 || isSubmitting}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+
+              {currentStep < 4 ? (
+                <Button onClick={nextStep} className="gap-2 px-8">
+                  Próximo
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button onClick={handleSubmit} disabled={isSubmitting} className="gap-2 px-8 bg-success hover:bg-success/90 text-white">
+                  {isSubmitting ? <Loader2 className="animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                  Finalizar Protocolo
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </section>
     </Layout>
